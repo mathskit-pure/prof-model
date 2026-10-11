@@ -13,10 +13,13 @@ import re
 import sys
 import shutil
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from paths import MAIN, WORK  # noqa: E402  路径：本机 Windows 与云端 Linux 通用
+
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-FOLD_PAGE = r"C:/Users/12066/WorkBuddy/2026-10-07-14-39-28/work/pool/pool_page_fold.html"
-BASE_PAGE = r"C:/Users/12066/WorkBuddy/2026-10-05-23-13-30/data/page_base.html"
+FOLD_PAGE = str(WORK / "pool" / "pool_page_fold.html")
+BASE_PAGE = str(MAIN / "data" / "page_base.html")
 BAK = BASE_PAGE + ".bak"
 
 # 页面必须同时具备这些标记，缺一说明产物不完整，绝不能拿去做模板

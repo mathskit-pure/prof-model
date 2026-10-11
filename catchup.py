@@ -8,10 +8,11 @@
 import subprocess, sys, os, time, json, re, csv
 
 csv.field_size_limit(10 ** 9)  # never choke on a large field during read-back
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from paths import WORK, WESTOCK as EXE  # noqa: E402  路径：本机 Windows 与云端 Linux 通用
+
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
-EXE = r"C:\Users\12066\.local\bin\westock.exe"
-WORK = r"C:\Users\12066\WorkBuddy\2026-10-07-14-39-28\work"
 PROF = os.path.join(WORK, "prof")
 INCOME = os.path.join(PROF, "income_all.csv")
 BALANCE = os.path.join(PROF, "balance_all.csv")

@@ -9,12 +9,13 @@
 """
 import sys, os, json, re, subprocess, argparse, urllib.request
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from paths import WORK, PY, library_skill  # noqa: E402  路径：本机 Windows 与云端 Linux 通用
+
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
-WORK = r"C:/Users/12066/WorkBuddy/2026-10-07-14-39-28/work"
 PAGE_NODE = "iB8I58mCTooLicPQ0Kyq0M"
-LIB_PAGE = r"C:/Users/12066/AppData/Local/Programs/WorkBuddy/resources/app.asar.unpacked/resources/plugins/workbuddy-builtin/skills/library/page"
-PY = r"C:/Users/12066/.workbuddy/binaries/python/envs/default/Scripts/python.exe"
+LIB_PAGE = str(library_skill() / "page")
 LIVE = os.path.join(WORK, "pool", "pool_page_live.html")
 EDITED = os.path.join(WORK, "pool", "pool_page_fold.html")
 MSG = "季度股池模块新增整体折叠（默认收起，点击展开）"

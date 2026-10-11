@@ -18,11 +18,12 @@ import sys
 import json
 import datetime as dt
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from paths import MAIN, WORK, AFGI  # noqa: E402  路径：本机 Windows 与云端 Linux 通用
+
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-MAIN = r"C:/Users/12066/WorkBuddy/2026-10-05-23-13-30"
-PROF = r"C:/Users/12066/WorkBuddy/2026-10-07-14-39-28/work"
-AFGI = r"C:/Users/12066/WorkBuddy/2026-10-05-14-50-58/afgi_tdx"
+PROF = str(WORK)
 
 
 def csv_last_date(path, date_col=0):

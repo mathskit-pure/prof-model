@@ -17,11 +17,11 @@
 import sys, os, json, subprocess, argparse, urllib.request, urllib.parse
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
-WORK = r"C:/Users/12066/WorkBuddy/2026-10-07-14-39-28/work"
+from paths import WORK, PY, library_skill   # noqa: E402  路径：本机 Windows 与云端 Linux 通用
+
 PROF = os.path.join(WORK, "prof")
 PAGE_NODE = "iB8I58mCTooLicPQ0Kyq0M"
-LIB_PAGE = r"C:/Users/12066/AppData/Local/Programs/WorkBuddy/resources/app.asar.unpacked/resources/plugins/workbuddy-builtin/skills/library/page"
-PY = r"C:/Users/12066/.workbuddy/binaries/python/envs/default/Scripts/python.exe"
+LIB_PAGE = str(library_skill() / "page")
 LOCAL_PAGE = os.path.join(WORK, "pool", "pool_page.html")
 TMP_PAGE = os.path.join(WORK, "pool", "pool_page_live.html")
 EDITED_PAGE = os.path.join(WORK, "pool", "pool_page_prof.html")

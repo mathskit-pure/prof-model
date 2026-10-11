@@ -13,9 +13,11 @@ import sys, os, json
 import numpy as np
 import pandas as pd
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from paths import WORK  # noqa: E402  路径：本机 Windows 与云端 Linux 通用
+
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
-WORK = r"C:\Users\12066\WorkBuddy\2026-10-07-14-39-28\work"
 PROF = os.path.join(WORK, "prof")
 PRICE_FILE = os.path.join(WORK, "prices_full_v2.csv")
 

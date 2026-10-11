@@ -15,10 +15,13 @@ import sys
 import shutil
 import pandas as pd
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from paths import MAIN, WORK  # noqa: E402  路径：本机 Windows 与云端 Linux 通用
+
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-SRC = r"C:/Users/12066/WorkBuddy/2026-10-05-23-13-30/data/prices_full_v2.csv"
-DST = r"C:/Users/12066/WorkBuddy/2026-10-07-14-39-28/work/prices_full_v2.csv"
+SRC = str(MAIN / "data" / "prices_full_v2.csv")
+DST = str(WORK / "prices_full_v2.csv")
 BAK = DST + ".bak"
 
 
