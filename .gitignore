@@ -1,0 +1,15 @@
+# 大体积数据不入库，云端自行重建：
+#   prices_full_v2.csv  由 sync_prices.py 从主项目同步 / 或 westock 重建
+#   prof/*.csv          catchup.py 抓取的财报缓存（支持断点续跑，可重建）
+#   pool/*.html         页面中间产物
+# 例外：pools.json / pools_compact.json 为股池成员名单，重建代价高，随代码入库。
+_bak/
+pool/
+prof/
+prices_full_v2.csv
+prices_full_v2.csv.bak
+__pycache__/
+*.py[cod]
+*.log
+.DS_Store
+.workbuddy/

@@ -1,0 +1,689 @@
+<!DOCTYPE html><html data-page-node-id="DTulZwlyovfrNV9TH6vVPj" lang="zh-CN"><head data-page-node-id="FWC0L1NTMqzRjE9AZV0ZXm">
+<script data-page-node-id="vKvVa6ita9DyVVCr2Ih1Xx" src="/page/page_comm/inject.js"></script><meta data-page-node-id="oWibrcb8yu8gpKWeRcbEJc" charset="utf-8">
+<title data-page-node-id="TfFAqAe4YtCIetuYNTaY3c" data-pnid-children="GSuJm1O8nCHgpu7OauSzsJ">A 股盈利能力评分模型</title><style data-page-node-id="Zw0ICMDmK1YfHpf9W5Jqqa" data-pnid-children="69fyaw21ewBBxsQ4Ha8Jk7">
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+     max-width:1180px;margin:0 auto;padding:32px 24px;color:#1f2328;line-height:1.65;background:#fff}
+h1{font-size:26px;margin:0 0 6px}
+h2{font-size:20px;margin:34px 0 12px;padding-bottom:8px;border-bottom:2px solid #eee}
+h3{font-size:16px;margin:22px 0 8px;color:#333}
+.sub{color:#666;font-size:13px;margin-bottom:4px}
+table.tbl{border-collapse:collapse;width:100%;font-size:13px;margin:10px 0}
+table.tbl th{background:#f6f8fa;border:1px solid #e1e4e8;padding:6px 10px;text-align:right}
+table.tbl td{border:1px solid #e1e4e8;padding:6px 10px;text-align:right}
+table.tbl th:first-child,table.tbl td:first-child{text-align:left}
+.note{background:#fbfbfa;border-left:3px solid #c0392b;padding:10px 14px;font-size:13px;color:#444;margin:12px 0}
+.kpi{display:flex;flex-wrap:wrap;gap:14px;margin:14px 0}
+.kpi div{flex:1;min-width:150px;background:#f6f8fa;border:1px solid #e1e4e8;border-radius:6px;padding:12px 14px}
+.kpi b{display:block;font-size:22px;color:#c0392b}
+.kpi span{font-size:12px;color:#666}
+code{background:#f2f2f2;padding:1px 5px;border-radius:3px;font-size:12px}
+</style></head><body data-page-node-id="LUo42dRaa5VfRYB2vxiwDS">
+<h1 data-page-node-id="DsDigL5fSumz5GLNetGw8q"><!--pnid:Ii1fDGQw5GX81CHReAh53y-->A 股盈利能力评分模型</h1><div data-page-node-id="d5S9v4nnods4u941BwKvQz" class="sub"><!--pnid:puwfKe39zHPgsJ3dbNTfVX-->合成数据端到端验证 | 理论来源：Novy-Marx & Medhat (2025, NBER WP 33601)</div>
+<h2 data-page-node-id="C6u0cK0OqvKU9MT7h4Dfuj"><!--pnid:cuhVFlqQPBCSJxxY34jafU-->一、模型设计：论文结论如何变成权重</h2>
+<div data-page-node-id="HXZQPNW9XLqJeQtu4DtJ2n" class="note"><b data-page-node-id="RAbAHs2cpj493HUfpTvK1C"><!--pnid:9FDDzkrurhdUC1r02i9Ut9-->核心变量 PROF</b><!--pnid:PtcFT98zFPLkbUF1p5RdQE--> = (营业收入 − 营业成本 − 销售费用 − 管理费用(不含研发) − 利息费用) / (归母权益 + 少数股东权益)。<br data-page-node-id="nN5ddBYyNB6tL4XvoX1EdY"><!--pnid:ScTsfDzGbNT7sKyOSW8VP2-->分子<b data-page-node-id="kHE85RbjryjbVdOoBFPex4"><!--pnid:pePJVhCc1V2t8wAotuyHaF-->不惩罚研发费用</b><!--pnid:qdI65CcafHVSuytaNyzSF0-->；分母是<b data-page-node-id="BMVZJGTbSEsAsAkHLvdDcH"><!--pnid:Evs0yBAxbILy9VzkvPHmWz-->账面权益</b><!--pnid:duuobRdARPzPYzhSHl85dw-->（不是总资产、也不是市值）。论文附录 B 系统比较了多种盈利能力度量，该口径（OPR&amp;D）对收益率、盈利增长、盈利增长预测的解释力最强。</div>
+<table data-page-node-id="1nCXV80HCp8d6yf9dCGfP9" class="dataframe tbl">
+  <thead data-page-node-id="AD5xT7Szhir51w7d71NKHr">
+    <tr data-page-node-id="OcxWqJjI2UnDhoGkal1Xb2" style="text-align:right">
+      <th data-page-node-id="trvHj8223d5OnAsAbAbkzI"><!--pnid:zvBvAWmymwzkK9BLKwXcdQ-->模块</th>
+      <th data-page-node-id="XarigXptVTpz9J4o14sonI"><!--pnid:Oo1YNzhMnmgnsFcgK0hwWh-->因子</th>
+      <th data-page-node-id="5IGhpgvF1Tf7EVeKaAqck9"><!--pnid:VZC9N2HRoO2ePUJiXNYe3l-->方向</th>
+      <th data-page-node-id="AVyRgJkGiupc7lLUAnjDIU"><!--pnid:DnbdLwykEbStkpQ82pLtx5-->权重</th>
+      <th data-page-node-id="A24CFJbI88qxp6LwM1QZcc"><!--pnid:Oa7KBieqe52eT4QGSdx5RK-->行业中性</th>
+      <th data-page-node-id="S1J0vApJcyQZJbzg4hbI4O"><!--pnid:oQPmIml1hiT46tKaS7l9ej-->论文依据</th>
+    </tr>
+  </thead>
+  <tbody data-page-node-id="CDwETt8HuoxzNR8mHJhEtt">
+    <tr data-page-node-id="xWFIWYZchMiKEtgJ5SrroL">
+      <td data-page-node-id="f485vLY3Fy2UoPzpHuapPW"><!--pnid:xasXbzqUKKlRRlsfUPU6zJ-->盈利能力</td>
+      <td data-page-node-id="usK7RcxKWye7oN6FCtt7Tv"><!--pnid:f72tzcGSbCyle0begUlvaU-->prof</td>
+      <td data-page-node-id="bTvQhS5M32FsLpxQtqzq3K"><!--pnid:RgcZlr2vRilNNMFtmROBlp-->+1（越大越好）</td>
+      <td data-page-node-id="lOqvRLmfhNcyih27o9eVYR"><!--pnid:cK7R1Quxo4we4SieZNcj9V-->0.35</td>
+      <td data-page-node-id="ilueQQVSLTSTcOG5aQDLuI"><!--pnid:xCIWP7NQF4HQ0YJakmMFsH-->否</td>
+      <td data-page-node-id="IKSl6Qqq7wtke6kiEl2mwH"><!--pnid:w3naAHRSUmd72I8H5Nej8Q-->论文核心变量 PROF = (REVT-COGS-(XSGA-XRD)-XINT)/(BE+MIB)。不惩罚研发、扣除利息、分母用账面权益+少数股东权益。附录 B：OPR&D(=PROF) 的月度收益预测 t=1.10，优于 OP(0.88) 与 COPR&D(0.47)；10 年盈利增长预测系数 0.84 (t=4.77)，远优于 OP(0.53) 与 COPR&D(-0.04)。</td>
+    </tr>
+    <tr data-page-node-id="J622HsfKPWkBumJZABtYfx">
+      <td data-page-node-id="ugpmbLa5dLb0zUNsypYY1X"><!--pnid:wf0jDNUFFC8cnFdmTCgVmZ-->盈利能力</td>
+      <td data-page-node-id="dXV23zzdwddwyCwpzQbbvu"><!--pnid:Bi8iWVpbkr7bZaeuhMo0oA-->prof_chg</td>
+      <td data-page-node-id="cbSOMlWVPDkNygdC4z79af"><!--pnid:cr3YdUG7DZ3iH81ooiOJLs-->+1（越大越好）</td>
+      <td data-page-node-id="wGN6DincNz6w6L2yzabL0h"><!--pnid:DVMvJYd0voU75ndpDfzmfW-->0.10</td>
+      <td data-page-node-id="pI4mmtVzloQJZpNpeUmLmL"><!--pnid:9znjRn22sH3tqdwLKzyH2t-->否</td>
+      <td data-page-node-id="NkPrywoqfY4e5hHNmAPzMt"><!--pnid:WS7JJbSd5dENyNMec9HqVU-->PROF 的同比变化（TTM 相对去年同期）。论文显示 PROF 对盈利增长预测能力最强，动量式改善有增量信息。</td>
+    </tr>
+    <tr data-page-node-id="Gx9oVVfvnqwAIMjdWii0hi">
+      <td data-page-node-id="0P0eMT6o2Mcjhxp2FiYmry"><!--pnid:PU52K0li4BpbcjqFmAn3BG-->盈利能力</td>
+      <td data-page-node-id="QkPqBjUgdtrGargugVE4gr"><!--pnid:UNX77s5Bgcv03Ad7HdvnlV-->prof_stab</td>
+      <td data-page-node-id="JW25F6GbMOnFkrmLtdaL4q"><!--pnid:wcmzCPyWj6b1zuFbNgTDA4-->+1（越大越好）</td>
+      <td data-page-node-id="N2qCtsDkZJUuXiDBDdebrs"><!--pnid:prsWjsLiQsnC5r8wDILKnR-->0.10</td>
+      <td data-page-node-id="tSyZR8ngTlAzw9rjGH8SFm"><!--pnid:pXmQXRAK8fc39ILtUsuc1T-->否</td>
+      <td data-page-node-id="Z972iZ5ObmUm2P39kyjJaU"><!--pnid:9yFmJutTh6V9p3iffXZEBF-->近 8 个季度 PROF 的均值/标准差（盈利稳定性）。论文 Table 3：PROF 对 PROF 自身的稳定性、EPS 稳定性等质量指标均有显著正 alpha，而反向不成立 —— 稳定性只是 PROF 的衍生，故只给辅助权重。</td>
+    </tr>
+    <tr data-page-node-id="x6fwKS8JA59K7unj1Y6aoU">
+      <td data-page-node-id="2dbpFpu6UmhvMhOEjWO3Xd"><!--pnid:5mG9bbDcF6XKTrGJQnHrtb-->保守投资</td>
+      <td data-page-node-id="Tf71ZNBxELrnIloYSHfnZ2"><!--pnid:pG3nFAv66GaeixUZZiKgXG-->asset_growth</td>
+      <td data-page-node-id="qJZridTDej3WjonwTEzXCQ"><!--pnid:dBpEQZAxAME4LgMZ41VFU9-->−1（越小越好）</td>
+      <td data-page-node-id="RHyhLRlAeJrPTbFJ3bfq7n"><!--pnid:LR6x0AORFBwhBTPR9f2YRg-->0.12</td>
+      <td data-page-node-id="NUtR4FCtkKEcRoSR3QyPNt"><!--pnid:JsRgCnajWrfsylPZPFCpXa-->否</td>
+      <td data-page-node-id="9pj1Xj9jmBDx8bsm3aU68v"><!--pnid:U0F7g5cJeDa6Roz8IuebCK-->-ln(总资产/上年同期总资产)。论文 Fama-MacBeth 回归中资产增长是核心控制变量；低 beta/低波动组合的 CMA 载荷高达 0.63-0.87，是防御性收益的两大来源之一。</td>
+    </tr>
+    <tr data-page-node-id="xAxkVUPot0PcL3tv6p0OHi">
+      <td data-page-node-id="mnUVY0ws8XipsT4D4tSoEB"><!--pnid:fvWklyocvjCKErkqfh2Fmv-->保守投资</td>
+      <td data-page-node-id="wOx3vWTRpMdORDR2TB7BSn"><!--pnid:XOlfftPL6lOmDZ7wZrQ87b-->net_issue</td>
+      <td data-page-node-id="hcr9RwYlq2DlzLRkkpYRYR"><!--pnid:CZdk4x9CENlWNJO9P5ufR3-->−1（越小越好）</td>
+      <td data-page-node-id="jSceNBHG4JA48LIpnRxszT"><!--pnid:ClQfVCGDiWpeM87xlBk2ve-->0.08</td>
+      <td data-page-node-id="rt4q2UigMwkzY5mKIxDHsy"><!--pnid:a0NJoDRa8kUQsNStvAKIqn-->否</td>
+      <td data-page-node-id="IXJC14kysVS8SOSnIkMLUu"><!--pnid:U16mqfbC8Gvcd9yOv5dxM0-->-(外部融资净额)/总资产，其中权益变动已剔除留存收益（避免与盈利能力混淆）。对应论文 CMA 因子的外部融资维度：低 beta/低波动组合的 CMA 载荷高达 0.63-0.87。</td>
+    </tr>
+    <tr data-page-node-id="JN9lj76biqAz1zAEPt87Xp">
+      <td data-page-node-id="kbpCfC5wyIQqISo1vx04c4"><!--pnid:QzdLzZblMuGK04B1s6fzuE-->价值</td>
+      <td data-page-node-id="KlyLmjcOjWbfwjiLSvrLas"><!--pnid:XLUoYsRZaGSEThTFurFtDW-->bm_ind</td>
+      <td data-page-node-id="ptTFvQ1P79DAIBB5H7zltg"><!--pnid:zb139eBO88emXnF97JPI1g-->+1（越大越好）</td>
+      <td data-page-node-id="pcAvzrLptaA7RaBuqKitcm"><!--pnid:w8w1JnIUr6DF1xUZ0Mnx7b-->0.09</td>
+      <td data-page-node-id="iwwRtmidWxk7BdPJ9tlmNk"><!--pnid:ytX9ZwhMDB7aesgPu57ByC-->是</td>
+      <td data-page-node-id="IqD4yfHDl3fjUPXeqTsZxA"><!--pnid:8QEBm01CA0BGcozOkjFajW-->行业内 B/M 的 z-score。论文第 4 节：12 种替代价值指标三因子 alpha 均显著为正，但加入 PROF 与 CMA 后五因子 alpha 全部不显著（因子旋转，未扩展前沿）。故仅给小权重，且必须行业中性化以避免行业押注。</td>
+    </tr>
+    <tr data-page-node-id="NnU7xZ9GMftn0vXwpyAlHn">
+      <td data-page-node-id="HEd0ehGqMsLyqX2fSORe3G"><!--pnid:T0nJfI6yH1t78OWs31jLcI-->价值</td>
+      <td data-page-node-id="gxFs57AEmcsfUcKnc3gk4o"><!--pnid:gl4tNKPTRJSEJ4D033iNed-->ep_ind</td>
+      <td data-page-node-id="unY2QazKflHYSp0v3Urx8k"><!--pnid:kwJpVbI2ZUUsrflcnAcZde-->+1（越大越好）</td>
+      <td data-page-node-id="wcyLZyYV3D3kPpjnQhEgD2"><!--pnid:BfeDdiiybXQbh63Zjv910p-->0.06</td>
+      <td data-page-node-id="6BnWNWDjitO6pZz0Om3wUj"><!--pnid:O0ejzN3ceg5Qd4N9NELcZ4-->是</td>
+      <td data-page-node-id="nSUU74I5HmU33ujj4T3krw"><!--pnid:rORXdTwnOmXpUiAAsLX6LF-->行业内 E/P（盈利收益率）的 z-score。论文 PMIRV（盈利匹配+行业相对价值）的 A 股简化版。</td>
+    </tr>
+    <tr data-page-node-id="239UtpYsENKBJORd2gfEXc">
+      <td data-page-node-id="7CFRDSCvegNNBXmS9mCWQT"><!--pnid:z45WN7X2OgndPROPQYY2c5-->规模</td>
+      <td data-page-node-id="puEvobkFlJlZtgwcVlu9PA"><!--pnid:DJ1a6zLxKm1B8nXmdD8m9D-->size</td>
+      <td data-page-node-id="AW2Udlh2uvVB5dpGn9GOEW"><!--pnid:a1gJtSG251kNfbOBXuA5aJ-->−1（越小越好）</td>
+      <td data-page-node-id="1nf05Ae7qqdN9ELO0IUktC"><!--pnid:SLSc3ESwTYwZp0QkbJaayp-->0.10</td>
+      <td data-page-node-id="dODgDvRahij5JM7nS2UBgO"><!--pnid:mQI580rkcbuTr93AAhABrX-->否</td>
+      <td data-page-node-id="aAyhFmf6sEQzOuIMGmCqAz"><!--pnid:Gk4nAXAvhgwk8Njt7ARVK8-->论文因子构建采用 2x3 规模 x 盈利能力独立排序（规模断点 NYSE 中位数）。这里给小市值适度倾斜。</td>
+    </tr>
+  </tbody>
+</table>
+<div data-page-node-id="teaZTlZQO9KP8tFtPaPefJ" class="note"><b data-page-node-id="JJKSo4DRdnXccwvVyJPzjG"><!--pnid:wNP6wdlErC2aVKitCokOdz-->权重结构的三条论文依据：</b><br data-page-node-id="RCtykLzNywLnKSgTw03YXJ"><!--pnid:eOn3fPDlAPYTzopXbvlMB7-->① 盈利能力占 55% —— PROF 完全包含（subsumes）整个质量因子空间（ROE、Q-Score、F-Score、O-Score、低 beta、低波动、QMJ 等），反向不成立；<br data-page-node-id="sDlFBm4RK2hfz9GDRY0ID2"><!--pnid:xQcdmzaK6uDx2sfxOKtOBK-->② 保守投资占 20% —— 低 beta/低波动策略的异常收益来自对高盈利+保守投资的倾斜，其 PROF 载荷 0.40–0.81、CMA 载荷 0.63–0.87；<br data-page-node-id="OkTPuPyOhHu9Z1Mko64tHp"><!--pnid:GXoNw5bSL0XnvLmemchAQq-->③ 价值仅占 15% 且必须行业中性 —— 12 种替代价值指标的三因子 alpha 显著为正，但加入 PROF 与 CMA 后五因子 alpha 全部不显著（因子旋转，未扩展投资前沿）。<br data-page-node-id="y8adQtjgNQa0cpxWBqDuMj"><!--pnid:fb5qzweHTJVQPCPEIAgF6D-->质量因子<b data-page-node-id="V0ZU11DoZu8lYfHUU9P9rt"><!--pnid:wSu5xY0NYViaVebu4Xqmyo-->不给 alpha 权重</b><!--pnid:C8dhsnhjtobmWuYBv9myhx-->，只降级为<b data-page-node-id="V8yGUmYgQQAoji5cNAvzc1"><!--pnid:9UdeqKKe42aWVedlL2W3R9-->排雷门</b><!--pnid:dsOvwsR9T1E2McHohQQnFe-->（应计异常、盈利未转化为现金、ST 等）。</div>
+<h2 data-page-node-id="TydktzKzYijoeVHjyJOOFp"><!--pnid:Zwu6hpddHAeaV5QLeGJXRf-->二、回测结果</h2>
+<div data-page-node-id="yTfeSKDYBBI882OPS2OLIh" class="kpi">
+<div data-page-node-id="SYpgEbbyYgeR2jBVU3bgUN"><b data-page-node-id="8Q4ntyPl5gISoyliL8BGOV"><!--pnid:1RgWTkIDNyo3CjaUbW9WGZ-->0.0966</b><span data-page-node-id="TuyeigKEBVpnUoxSuku7eD"><!--pnid:xbtSMF14t7CK2fXH7UyLfr-->RankIC 均值</span></div>
+<div data-page-node-id="Ri92U2qneDQHvqSuBcymVE"><b data-page-node-id="dJLjcwIDU2qchnwYYzTHYR"><!--pnid:rKdAnlA6Sx5cAgLYv7KmCP-->10.60</b><span data-page-node-id="KWCKR7gH7bYfEWfvhbE2PV"><!--pnid:c3KOnZ9bL1n2XSiUaCOiJ1-->RankIC t 值</span></div>
+<div data-page-node-id="71RK3mU5RIgciNN8dq1mum"><b data-page-node-id="I0d3P8Vyn4bZBNGZPxaXzs"><!--pnid:Ko3Mrd2xeqhMef2OfFuLOO-->2.70</b><span data-page-node-id="ncGcOQ4XeZ2LKDE0GmPpaS"><!--pnid:0LHbQBsDNVonqxgF0lsRyP-->ICIR</span></div>
+<div data-page-node-id="j674Jyqs99O8PvOseN593i"><b data-page-node-id="yL7HELxwY3h6qeWQEcEw2i"><!--pnid:JpUuQkoEAJYz1mFYc7TTrn-->100.0%</b><span data-page-node-id="NBbIZC6batuSkD7EJDy7uv"><!--pnid:dtrW6mmpwton7Q0b37P8TF-->IC>0 占比</span></div>
+<div data-page-node-id="d67myVF2efTjeGQtrv7tuV"><b data-page-node-id="3aN6sMpuzjZtHoiWBCF4li"><!--pnid:7o3DP57NmRuChCm2FFnO3Z-->19</b><span data-page-node-id="7ZL6fdgSDxuRVMSqpYLdU4"><!--pnid:f9GRAidhEOUzkEJJkOttdx-->回测期数</span></div>
+</div>
+<h3 data-page-node-id="2D8U6SL9XDxAYyaxp9bemw"><!--pnid:kF7QTt0p8NuanvDuV1zMFv-->综合分十分位分组年化收益（第 1 组 = 评分最高）</h3>
+<div data-page-node-id="uRpk0AiQcavOJMgtlt5gn6">                        <script data-page-node-id="7Z49328qVjR432t2XK8U10" data-pnid-children="p6JD3d8cdYiZEuYndbBwNc" type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script data-page-node-id="cMtw3GGs0coYXiRreuraRl" charset="utf-8" crossorigin="anonymous" integrity="sha256-4rD3fugVb/nVJYUv5Ky3v+fYXoouHaBSP20WIJuEiWg=" src="https://cdn.plot.ly/plotly-3.3.1.min.js"></script>                <div data-page-node-id="3ANBaMNRI1ZpTF7c3qW3TG" class="plotly-graph-div" id="a30de251-69dc-4a90-9aae-e57eb2e82c2d" style="height:380px; width:100%"></div>            <script data-page-node-id="8pC7sjJ3LWFWmTlb7B5Z8W" data-pnid-children="aBxJbTbvkbmYT9JTZi5JuE" type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("a30de251-69dc-4a90-9aae-e57eb2e82c2d")) {                    Plotly.newPlot(                        "a30de251-69dc-4a90-9aae-e57eb2e82c2d",                        [{"marker":{"color":"#c0392b"},"text":["8.92","3.03","7.10","2.64","2.12","0.01","-0.11","-1.03","-6.22","-7.30"],"textposition":"outside","x":["1","2","3","4","5","6","7","8","9","10"],"y":[8.924015857072312,3.02670565357333,7.102668603775726,2.63558619951371,2.118317241314361,0.009213309067779358,-0.10553420986060894,-1.0294832312852578,-6.221849810904686,-7.299063099936245],"type":"bar"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"geo":{"bgcolor":"white","lakecolor":"white","landcolor":"white","showlakes":true,"showland":true,"subunitcolor":"#C8D4E3"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"light"},"paper_bgcolor":"white","plot_bgcolor":"white","polar":{"angularaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""},"bgcolor":"white","radialaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"yaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"zaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"ternary":{"aaxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"baxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"bgcolor":"white","caxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""}},"title":{"x":0.05},"xaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2}}},"margin":{"l":40,"r":20,"t":50,"b":40},"title":{"text":"十分位分组年化收益（等权，%）"},"xaxis":{"title":{"text":"分组"}},"yaxis":{"title":{"text":"年化收益 %"}},"height":380},                        {"displayModeBar": false, "responsive": true}                    )                };            </script>        </div>
+<table data-page-node-id="U5fBAV90t3YpG0BSA29jAn" class="dataframe tbl">
+  <thead data-page-node-id="X55cOEPhToGowRiQvULib5">
+    <tr data-page-node-id="UrZV8HIW9hzqkrOH5PixkV" style="text-align:right">
+      <th data-page-node-id="HThaVEyoLpt5B3AGDL6al3"><!--pnid:6OCSAEYfudkHqUngEu2FjG-->分组</th>
+      <th data-page-node-id="poZ6G0SKTSax8s63fmwFBW"><!--pnid:dEak1rFGOjkZX7JX6VAD7A-->平均只数</th>
+      <th data-page-node-id="vdmvUbq1QZh9nRoAOcCok5"><!--pnid:U67XJux7fgggXLHpunjTKq-->期均收益</th>
+      <th data-page-node-id="y90kJjPIad1Arpnn9v6Zux"><!--pnid:CPZ2vBONCWurQ9CJNxJ3oK-->ret_vw_mean</th>
+      <th data-page-node-id="LOh1TewInzBOiCp3a3Xufq"><!--pnid:aWyEqfX8qT2YcWe64vEf4M-->ret_ew_std</th>
+      <th data-page-node-id="C8TGKiZvpiiyelUuQH1ZdW"><!--pnid:NiaHpTlUxonPpCwDGUuU5n-->periods</th>
+      <th data-page-node-id="lu89LKxRPLsrhk4mLZpEIr"><!--pnid:G1NNMX8lREyGfwDmoa0SE2-->年化(等权)</th>
+      <th data-page-node-id="MXwfuHXByAmseKGLDTdD1x"><!--pnid:BQE5GWYKegnB57N4sEbgwW-->年化(市值加权)</th>
+      <th data-page-node-id="BWbXbVVbz9FqB1TjB6lNdL"><!--pnid:KUUNFtqpZZJdxuiOlbQL2A-->夏普</th>
+    </tr>
+  </thead>
+  <tbody data-page-node-id="Hpkkh7O3TH36ksyiM8CvAf">
+    <tr data-page-node-id="Zyn77UKa7wNwy7Xj0RzXky">
+      <td data-page-node-id="xwDdXmEr5jEkK9o3hk5GWw"><!--pnid:ywMFz2F9JvYJrLM4Azq4pf-->1</td>
+      <td data-page-node-id="dOPxThgg4yii4NhGjnmzRK"><!--pnid:67aH6AHBPX7UxHvPNe8kva-->53.0000</td>
+      <td data-page-node-id="TB301IRviF4AcNn3Vwa8Fn"><!--pnid:XOoYL45owUYh2FIOpnsONI-->0.0297</td>
+      <td data-page-node-id="beKnh8lNWQ4YyfMDrfRG3T"><!--pnid:UAcLgRVBj1pOlfqFGF7mxU-->0.0241</td>
+      <td data-page-node-id="VSP1BSglzojlAjH75gxDeV"><!--pnid:AwTDLBnqiDYBMXA7nSCqYn-->0.0266</td>
+      <td data-page-node-id="AcWZwIyumf78hLj89KeJiw"><!--pnid:7OymtwT0mZ2YezVyuYlgzE-->19</td>
+      <td data-page-node-id="jCpkVeqyMcijsJV6EgXgBy"><!--pnid:HGsTjmM3AZIEq73Sjo10BO-->0.0892</td>
+      <td data-page-node-id="wnR6vzXxPRUlnoL50Z4Yhu"><!--pnid:nWJQXUHHMoCp6eQ4ji9Tnb-->0.0724</td>
+      <td data-page-node-id="QgYpjc3sNdeKMxVSUTU8OD"><!--pnid:4AeZX0A5C3mmqm5dM7Xm3t-->1.9365</td>
+    </tr>
+    <tr data-page-node-id="TwlRaCnAHJgAYU0uAz0eiK">
+      <td data-page-node-id="7Oc58IeLGidpTID6ZYCXvg"><!--pnid:vUDp191BNnLdqlgAGa9u3L-->2</td>
+      <td data-page-node-id="IujgLlxsBdYj8AYCFoTRnD"><!--pnid:WlR61ChZ0p9hqfwFNNGkUF-->53.0000</td>
+      <td data-page-node-id="g4OIyfMuNLg9qB8zM2ky0D"><!--pnid:9dJ8noLpxnpSxeN8PskLUb-->0.0101</td>
+      <td data-page-node-id="KX2mlfBc8yKlTN2ATaa8tv"><!--pnid:lJj9YdFM2kXeXuQthXgdrq-->0.0103</td>
+      <td data-page-node-id="Xu745swTVOZoycYUM28BkP"><!--pnid:dAbTjEVlxaxUwribi7MNu9-->0.0177</td>
+      <td data-page-node-id="GGEKEJcZqkPIdet9GUK2KU"><!--pnid:gjMx2GmQSDDLFaSVyCOlw6-->19</td>
+      <td data-page-node-id="zBo3bKnEC5diFLTQSFlwb6"><!--pnid:LPlK6EcvLjRrNkZTwrKgSa-->0.0303</td>
+      <td data-page-node-id="x1cGTVhEAI4rvguN6FhkyE"><!--pnid:Dy7XspZdTdBNo6EDlnZOrR-->0.0310</td>
+      <td data-page-node-id="tihCcvu0cFY0UKyw829rxX"><!--pnid:m0sJS6SazpxgM4t47bT2sM-->0.9860</td>
+    </tr>
+    <tr data-page-node-id="iJcfEubqXSZtZaKDFxXUD1">
+      <td data-page-node-id="e1fldm4xCOifHhNJj0Xn3d"><!--pnid:QBTC8PLu5s7PH7gximTShg-->3</td>
+      <td data-page-node-id="24EgZQgseDK92MLzaIqZ12"><!--pnid:JQiB8FIV7aDZHre20fybTK-->52.0000</td>
+      <td data-page-node-id="QaLKHTeyVpL7lzvUzP6LKI"><!--pnid:55tZwiTGl2bHZes2SNqHN8-->0.0237</td>
+      <td data-page-node-id="x9BKYzV6VwqQKxvByq76IP"><!--pnid:eXv0rX3cvc6tSVAJRw2tsz-->0.0180</td>
+      <td data-page-node-id="dVlQSeGWJdT3YCD2CpzuTI"><!--pnid:mYD8F1RJoHVaQ3FpO5DTDl-->0.0261</td>
+      <td data-page-node-id="wFeVHzKJab78WLztuahxGy"><!--pnid:28j8xI5rokK80eJCAgWDNZ-->19</td>
+      <td data-page-node-id="lyfQe6DGn4PxJhFotJnnNn"><!--pnid:Hg6f3k9mCRoVdegeIO9HvG-->0.0710</td>
+      <td data-page-node-id="m0tkdOKnIx2NjUPGLxiHXg"><!--pnid:0ykuvuCnPOGsjy5UFukHbi-->0.0539</td>
+      <td data-page-node-id="fwA7U6ttfBTwKac9V1MxXE"><!--pnid:BraIgAJBbRVRs0i5HiizSG-->1.5738</td>
+    </tr>
+    <tr data-page-node-id="DyY8V3rNMQPSW18PLOx2cO">
+      <td data-page-node-id="MFqbj9TP8SSKfRRsoxxDp8"><!--pnid:Kf2bHTORF3NwpIpJGjuV90-->4</td>
+      <td data-page-node-id="D4NcQVTAYwybUTM6OtSslr"><!--pnid:uiMklmYp0JMhlyn7pg7uLg-->53.0000</td>
+      <td data-page-node-id="es23efNS4ODHKX6jDYzMzh"><!--pnid:dC9sJ2qOdYIOckP1s9zDQf-->0.0088</td>
+      <td data-page-node-id="iQaFUUhRBkyGmnueFQQLoF"><!--pnid:4RM10pZJa2KzKzdfM2rC1J-->0.0135</td>
+      <td data-page-node-id="tWiJgfdzscCk3UWw59uQvO"><!--pnid:pTiVKWAG4zGuDarrZOxHgv-->0.0181</td>
+      <td data-page-node-id="JYUVRVjpRKD994TiKuEPSC"><!--pnid:aJeviGalNUfUwtHHHCVHEG-->19</td>
+      <td data-page-node-id="WXiMF0w30S0dBPwCfR2Elg"><!--pnid:Rrcv2T50Pl5SGJCipJyx9Z-->0.0264</td>
+      <td data-page-node-id="co7PoVe5Dj6vvwWf7KlsRb"><!--pnid:BAe710MJHcWDPLsdpzixRD-->0.0404</td>
+      <td data-page-node-id="95vHYpteUPWZSpwN3Mdjyw"><!--pnid:QMxOv6AyvT8OEwsq6nRtq3-->0.8425</td>
+    </tr>
+    <tr data-page-node-id="TY3Y5VHaE3cVDTb3YspSp5">
+      <td data-page-node-id="qjCILLjLs2FEXDV2OJFJnl"><!--pnid:hm7gH5XQvIYeXVAKP6jpVw-->5</td>
+      <td data-page-node-id="V0p5tqSQb68jlMrybMMaeC"><!--pnid:dwj7pjEU9Hmvzn2MiKQsA5-->52.0000</td>
+      <td data-page-node-id="giaV11mUI7g5HIpLhhyNRM"><!--pnid:KZQ6VmjS0yhFfBkEYRQ8VC-->0.0071</td>
+      <td data-page-node-id="INTaR8FEnXVWnSUhWyaeCu"><!--pnid:dIIb8kuXbjQFDxK2baD5Cb-->0.0028</td>
+      <td data-page-node-id="RLHWGhYlYoRrchBF6xMFbp"><!--pnid:ZcblKIA65Ng4MLI9ccRnWQ-->0.0264</td>
+      <td data-page-node-id="ljO8asYbzXldijsjT9BEzO"><!--pnid:Hsk1Ve161DhQyXlaJ2aEK1-->19</td>
+      <td data-page-node-id="kbKTbnVi2vZeHmVXMXXxno"><!--pnid:x8hCfInHj7ojjyPhsquVUU-->0.0212</td>
+      <td data-page-node-id="ach6RaB8OmVrPDZLE7LFvo"><!--pnid:QkYFhqGjxhJluSwDAWvl26-->0.0084</td>
+      <td data-page-node-id="JHyK5OFzVmMf4SuCVaIt3x"><!--pnid:tTJ97TY2cSjCuI57w2UHbi-->0.4639</td>
+    </tr>
+    <tr data-page-node-id="subNEEcf0oQhjRWnddMQYU">
+      <td data-page-node-id="NGZTEu27d7nk0l8pfHKom6"><!--pnid:5p8AL6l5LZgZCDfmWRrids-->6</td>
+      <td data-page-node-id="g1lk2F6is3z1VOQWxtNhD4"><!--pnid:7GZb7BgEy5ZCF5Yy3Es39o-->53.0000</td>
+      <td data-page-node-id="fOTs0yB0urZwmdvNT1DY0q"><!--pnid:VxlKgMWCGQSHgs86KpnytS-->0.0000</td>
+      <td data-page-node-id="SsmheDTurZNlGm4DguFL5s"><!--pnid:yl1q3yWrsuIERAGPmjI1vX-->-0.0065</td>
+      <td data-page-node-id="bFnZkrf9LD9uS7NQ95Dp4R"><!--pnid:cAMMmVz7zih0n6ucMD4sFN-->0.0262</td>
+      <td data-page-node-id="7apUGPUcXj6oRhEk8RwWy5"><!--pnid:48hb8QBf6EPomdLps7vRhd-->19</td>
+      <td data-page-node-id="e2vVbNKiViSpSm5sX0fFzp"><!--pnid:48n4yKX7W9jyZUTKHRSeGw-->0.0001</td>
+      <td data-page-node-id="65OMDOSrK6jaaJ5Vy8EJPa"><!--pnid:VMkvJYPBj4TDZFGn6TaTg9-->-0.0194</td>
+      <td data-page-node-id="X4fsrU78N1TFzCLPC1sETC"><!--pnid:XaYwi9sW4xL4VkvT1Z0msM-->0.0020</td>
+    </tr>
+    <tr data-page-node-id="31XTpziNLReY65sXO8S2bg">
+      <td data-page-node-id="nVm3ZtwUTwDwS6VL711JLg"><!--pnid:MmiDdBsNs4uzjn6RWDS6JZ-->7</td>
+      <td data-page-node-id="pIAD23vNbKRp2W0sg8dVAK"><!--pnid:Jg0H8BKvWQkNtKq8DQ9NEO-->53.0000</td>
+      <td data-page-node-id="kVOSUckMYTGCzTmJ6wnEie"><!--pnid:28XuBndm0TjeVW2nxNraKe-->-0.0004</td>
+      <td data-page-node-id="7lC955yGDbILrfJEK6HXqB"><!--pnid:R4uNzsi2NOUbBQDnOZWZQ6-->-0.0003</td>
+      <td data-page-node-id="K4vnI6n9AxRrOSihc8fMsW"><!--pnid:39joGYAaahoDmXIfmNczuA-->0.0226</td>
+      <td data-page-node-id="sHDECWET4FBP3fyjpHaZND"><!--pnid:NFsZZcLoGH9a2r2VG7omCD-->19</td>
+      <td data-page-node-id="FQzMIogHZ2AAwXOIPv78qO"><!--pnid:Wk8JKgV06BdxAJUIeq1wIv-->-0.0011</td>
+      <td data-page-node-id="neLu4p0X7VcBOG9TqDtDN8"><!--pnid:QDRnmq0LngWdlOPPZwivnw-->-0.0010</td>
+      <td data-page-node-id="V39c9PN4W9Tll5tBKKjbM0"><!--pnid:6aEkmmhbXKgs8mxI6OLuxT-->-0.0269</td>
+    </tr>
+    <tr data-page-node-id="hmqzmFiGE6ypDbgLiFHoIJ">
+      <td data-page-node-id="lhgjpC03ltPfwkfzKP76qA"><!--pnid:vafWOjeqXaSDJDFGM0rx7W-->8</td>
+      <td data-page-node-id="PfiU7LaqgeAZt8bBPLjxXe"><!--pnid:8nzlOZgIFd77FqwKxhut2c-->52.0000</td>
+      <td data-page-node-id="HUWJyYVSM91p9DVuqRn7qt"><!--pnid:H5BJqMgKFA7MZPTRCis2Ef-->-0.0034</td>
+      <td data-page-node-id="xz31nPQumNBhVQeeO4VY0K"><!--pnid:whtKh4Z7b3fAhjNubkt72B-->-0.0125</td>
+      <td data-page-node-id="r1ujOwuziuQ4Zq8yrWqZNC"><!--pnid:O03z9SXp5rCG3Fa5RqoEup-->0.0135</td>
+      <td data-page-node-id="UXqDfxSli5C6jSyKeEIOIw"><!--pnid:93qd69DL5LI7KEN5YKDqjN-->19</td>
+      <td data-page-node-id="AkRGATOAEMBJh0v1v6UDiL"><!--pnid:rKG2HQiiEITxYU2lPoYllh-->-0.0103</td>
+      <td data-page-node-id="jZlMNZdyYpL1xi5Ugf98Ar"><!--pnid:6G6rObxG5dr7YpzyzRRFOR-->-0.0375</td>
+      <td data-page-node-id="KKXcSRcWDBjtEkD5l4Vw5n"><!--pnid:nZRQtWVUO4fnO0zCM4vPCs-->-0.4414</td>
+    </tr>
+    <tr data-page-node-id="NYmpgi4u5QrkrWe87SdEsK">
+      <td data-page-node-id="OFDXuZHq8U7L92Dwd627Ed"><!--pnid:geiTQxhtQavFEwJoJYC3Zv-->9</td>
+      <td data-page-node-id="TISQT6iReSVLRDpXx11T2n"><!--pnid:qyjDxZfaQlOneHR0HqXkC0-->53.0000</td>
+      <td data-page-node-id="TL4CmXiCis9vJJOF50v7CV"><!--pnid:MDTJGu1dm5tFzlHJpNMcU6-->-0.0207</td>
+      <td data-page-node-id="hY5qfOiEbxVYSNbc5Otk2H"><!--pnid:tATqhJVnEQwdrmDHVG7PwJ-->-0.0198</td>
+      <td data-page-node-id="CFDUdijjISLWMYOScue0YJ"><!--pnid:qgpcgO3ELIhxzYhxoAk5Fw-->0.0283</td>
+      <td data-page-node-id="4IhpjSFxGLLu4HfmkZup17"><!--pnid:xF7uqu0L2BFZeJ5EdKqEGf-->19</td>
+      <td data-page-node-id="ZMVIyNEeDfD4JDAclVALo9"><!--pnid:9dYKifJfpw5bgtPG5Ifgsu-->-0.0622</td>
+      <td data-page-node-id="vgoAf8OmFHCnkeVgwk9N6g"><!--pnid:8vOiLIYzLIpP1MpjmaQxIq-->-0.0593</td>
+      <td data-page-node-id="c7zBdWCvwYxuEyALybBt00"><!--pnid:No0u5EtGidY7HLY5N3Tygm-->-1.2710</td>
+    </tr>
+    <tr data-page-node-id="0L8WhTIpbrjNT5eScUAry1">
+      <td data-page-node-id="h7Y3VLJHXNGNbqcuUGv0t2"><!--pnid:5SSI7e6pdsSGKqFUYQe7AL-->10</td>
+      <td data-page-node-id="eHWu6HtTs6QcO0E5nj60N0"><!--pnid:WqHh5m2pTpatINQcDi9YCF-->53.0000</td>
+      <td data-page-node-id="cxdUBM7EHsVxQdE0bBPASK"><!--pnid:jRqfmSP8JGiISUkPaGvbCQ-->-0.0243</td>
+      <td data-page-node-id="bhQnQb624FxM5uoFfLFpFb"><!--pnid:14qI5tjzXgDktCbBOIiPs2-->-0.0296</td>
+      <td data-page-node-id="ut3wXek5Tccni2w4Bh318d"><!--pnid:KT6aJNTWa1CAUscTF8gI6b-->0.0178</td>
+      <td data-page-node-id="i1u9CbbBb2a81UApYFRxtb"><!--pnid:XwMcbIUiQ5vyZZcCC9hoKp-->19</td>
+      <td data-page-node-id="wm242vm4qB6liEPmhL0IzB"><!--pnid:2YA3bPuX0Py36f8gnwa9cU-->-0.0730</td>
+      <td data-page-node-id="l1Pue5Dm7aGwJxQI74tbJd"><!--pnid:gqoXgIVLDTHY2mfRv62Eea-->-0.0887</td>
+      <td data-page-node-id="xrT24fxXbL2rx2aEYZUCig"><!--pnid:Z5Ys3U6UJapCoiX1QeB8ho-->-2.3698</td>
+    </tr>
+  </tbody>
+</table>
+<h3 data-page-node-id="AMzKci4ScMvn2TBu2zKTms"><!--pnid:DwlAPvaEoPBKuMjIQH5G5C-->2×3 规模 × 盈利能力分组（论文标准构建）</h3>
+<div data-page-node-id="Okjp0OSwuGtk6eyZbqVYHF">                        <script data-page-node-id="BBRuE6lCaXvGf5smrlIowv" data-pnid-children="uyqDSXuUYDusncUczrnUhm" type="text/javascript">window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script data-page-node-id="HyeETwHlQ2Cl02L0h14xoj" charset="utf-8" crossorigin="anonymous" integrity="sha256-4rD3fugVb/nVJYUv5Ky3v+fYXoouHaBSP20WIJuEiWg=" src="https://cdn.plot.ly/plotly-3.3.1.min.js"></script>                <div data-page-node-id="tcwb8qDpq3SwdZHOcf8KSI" class="plotly-graph-div" id="ed956a9b-acee-4d3e-b302-b8db96d1a94c" style="height:380px; width:100%"></div>            <script data-page-node-id="efXxx9CQOZk3SWUkFL9Kdz" data-pnid-children="qRIZjlxskCmH3jIcyc4bCd" type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("ed956a9b-acee-4d3e-b302-b8db96d1a94c")) {                    Plotly.newPlot(                        "ed956a9b-acee-4d3e-b302-b8db96d1a94c",                        [{"marker":{"color":"#2c6fbb"},"text":["3.50","-5.01","-0.69","7.61","-2.44","2.70"],"textposition":"outside","x":["Big_High","Big_Low","Big_Mid","Small_High","Small_Low","Small_Mid"],"y":[3.5002705608189486,-5.013978744021647,-0.6867612059600184,7.613333747357432,-2.437679575259367,2.704971353702807],"type":"bar"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"geo":{"bgcolor":"white","lakecolor":"white","landcolor":"white","showlakes":true,"showland":true,"subunitcolor":"#C8D4E3"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"light"},"paper_bgcolor":"white","plot_bgcolor":"white","polar":{"angularaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""},"bgcolor":"white","radialaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"yaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"zaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"ternary":{"aaxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"baxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"bgcolor":"white","caxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""}},"title":{"x":0.05},"xaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2}}},"margin":{"l":40,"r":20,"t":50,"b":40},"title":{"text":"2×3 分组年化收益（等权，%）"},"xaxis":{"title":{"text":"分组"}},"yaxis":{"title":{"text":"年化收益 %"}},"height":380},                        {"displayModeBar": false, "responsive": true}                    )                };            </script>        </div>
+<table data-page-node-id="zoe8atxYmgYsYdMNEUl32f" class="dataframe tbl">
+  <thead data-page-node-id="eA3TNvBiyV6mVqlCWTheOQ">
+    <tr data-page-node-id="UlRDDOfb1yDIrTKAgC9ltY" style="text-align:right">
+      <th data-page-node-id="0iiP6FYE8ElBhdPN1lDRpI"><!--pnid:r4WNlJcr7eXXMyhngAGrfI-->分组</th>
+      <th data-page-node-id="UH6BYkbr7lODSD8OI1VZfm"><!--pnid:SwGYDFpjTDpMqWcXjWmYzw-->样本数</th>
+      <th data-page-node-id="UEqgGrHjZOGzTzStBODR2P"><!--pnid:hrc3gnaCDZT1Orz4k6Ogch-->期均收益</th>
+      <th data-page-node-id="TX1s544FQ2f9u8UzSlIeef"><!--pnid:PC8lHoRqouROZl2qxdQTQp-->平均 PROF</th>
+      <th data-page-node-id="4JFu5mbrkqwdDg1CN3VBhV"><!--pnid:HLKTMdDleg4fvf2XlOVOj8-->平均综合分</th>
+      <th data-page-node-id="oUnd9BwCCu8CiQg7W47lmN"><!--pnid:JqY9kRKyFJWkKlWYo2rF3T-->年化</th>
+    </tr>
+  </thead>
+  <tbody data-page-node-id="BV5AJwm2nc408Dfx63EdsU">
+    <tr data-page-node-id="Ua3Fg0lr5jhQT6Ke0RJmYn">
+      <td data-page-node-id="wY4rqYKBJFy5157ylA6juO"><!--pnid:oWpsAkM8R60ixUzATNR9i6-->Big_High</td>
+      <td data-page-node-id="zCRddACQYVnzgPoA7dBmeC"><!--pnid:Hog2fX0HLe3aBzDBo66kAa-->1834</td>
+      <td data-page-node-id="3vkia1rrWJro46yCyrV5bi"><!--pnid:ZdXTC7IGkNdtiuXiDXgB4J-->0.0117</td>
+      <td data-page-node-id="vQyBftzNOIZwE1jR0dAK29"><!--pnid:scs2eQKCxfXXDKxMiMPPD3-->0.4312</td>
+      <td data-page-node-id="kVKuFfAbkKhbauO0fm07Fi"><!--pnid:tOx8TqOPbyyMQFP4Zfs2je-->0.4388</td>
+      <td data-page-node-id="SAIRCCVUkWXSj8azZqsci3"><!--pnid:Znb1pjDDiD0IMZfcA96dwX-->0.0350</td>
+    </tr>
+    <tr data-page-node-id="5Nbqsbr95Fph6xDSUJjwyU">
+      <td data-page-node-id="YaOvyzu9VwIwIjOey8bRGf"><!--pnid:1x1DsigUTX8RlcyxHTM1GE-->Big_Low</td>
+      <td data-page-node-id="M0RdOyZEkqLwQYdNcZlnlC"><!--pnid:uoOjHsEeXnk0nX1akZ7S87-->1255</td>
+      <td data-page-node-id="mHNHsNC7UZWQH7lGXkg88A"><!--pnid:1KRTykIjDdNnZLPH0daRHQ-->-0.0167</td>
+      <td data-page-node-id="IRwZ3w3xIU1E1HqHVwTzvx"><!--pnid:4NDpsTdy55AUEZCMBOjPaL-->0.1538</td>
+      <td data-page-node-id="RayqPqXlCjSs0Rvl5CNt8B"><!--pnid:IRX9yJbYnZMfcI1ZOZpvUL-->-0.6794</td>
+      <td data-page-node-id="5imaoPR5u1eS0ccSrCisf0"><!--pnid:UIcqaQb7m7MqtMcrpIEycC-->-0.0501</td>
+    </tr>
+    <tr data-page-node-id="KXOZ27yC6Q4TxoUSFitrIx">
+      <td data-page-node-id="JdlsunOKyfKKX9nMSWV22Z"><!--pnid:nHIQO9TCH0HucMtVC8NFC4-->Big_Mid</td>
+      <td data-page-node-id="PmElB1L2sSCvYZRZa1en2I"><!--pnid:vXR7EvEQmLxZKMYF4oOn85-->1927</td>
+      <td data-page-node-id="oMdix3Ks7IVFWdT6Se1aM2"><!--pnid:9gbW4Phzvudx5G1VdNoB04-->-0.0023</td>
+      <td data-page-node-id="3MkBEVO7mRWWSyMCMGrBhy"><!--pnid:oi4UG34mm8Nz0xqfamxfwK-->0.2946</td>
+      <td data-page-node-id="7svK9OFKOpfA4jz2q4nE2D"><!--pnid:faNuWOf2aJkRDY7uSIuxN7-->-0.0995</td>
+      <td data-page-node-id="r0IxvVAnpgdeBUy1p3NtYV"><!--pnid:QrDff7kCZn2kfvXZ4HjK3i-->-0.0069</td>
+    </tr>
+    <tr data-page-node-id="ZIdExnP0O7ja7f81bVkHAP">
+      <td data-page-node-id="B9obEGr7XUHb4U8b5V4czU"><!--pnid:LxGjhTOsDsyLFiePhgr9AG-->Small_High</td>
+      <td data-page-node-id="PkDYbA9oS1KFJ9N6JgnjUH"><!--pnid:vTkPRiZHZmFfyMEvVxelHh-->1168</td>
+      <td data-page-node-id="DTynlk0t1Kx4PF9lNZjtXU"><!--pnid:vmQ3N2W9tZH6N4Os4B5xjS-->0.0254</td>
+      <td data-page-node-id="fVOxXCkU924nMaWXQK91JG"><!--pnid:O740jaQscEVMdXUJCntWJX-->0.4184</td>
+      <td data-page-node-id="scpEc16cM8HT7OsJN0Xsgk"><!--pnid:8TIRDhwEOnVQj6qAiQMLKs-->0.5610</td>
+      <td data-page-node-id="pmFknGJp5qI0lKc8RfAmmV"><!--pnid:LEj4PWJnybmH98HQOaEuZO-->0.0761</td>
+    </tr>
+    <tr data-page-node-id="hyWUke0br6NGoXaaW4rBLc">
+      <td data-page-node-id="GvWblacyQXjivi8DoevrsD"><!--pnid:91vRGeEXLgg1XqMo0KUPDj-->Small_Low</td>
+      <td data-page-node-id="UNv21gWuqheLGjugeFPtpP"><!--pnid:CfLUyWuWwKkuvF3R2en82b-->1747</td>
+      <td data-page-node-id="NlU8Hhyw2RvzEr4wqHWC0g"><!--pnid:YWJ6P340GMzLV9Mz7qkdHy-->-0.0081</td>
+      <td data-page-node-id="O5X6pG7uYdvCNgtOBLymd5"><!--pnid:gfouq3RYpRPjV046ALg8Ma-->0.1437</td>
+      <td data-page-node-id="yPltW4W442OR0mvQuyC9Na"><!--pnid:F5uIyQYp7WGLaQV7CLBFgD-->-0.5493</td>
+      <td data-page-node-id="Qe9biRoVBueaYVNd7bHznX"><!--pnid:mw4VvZoZdzs8sIeEaHcZSv-->-0.0244</td>
+    </tr>
+    <tr data-page-node-id="qym95nBpL5MSgn966RfxuJ">
+      <td data-page-node-id="skv02NDU0xNPlnSYFB4uWx"><!--pnid:QPXFm7yV24baQ1NPG2NgSu-->Small_Mid</td>
+      <td data-page-node-id="bgjYQ4l10QFzDRuPzay5Gg"><!--pnid:naDjqFonD1Qc9E8JintVAk-->2082</td>
+      <td data-page-node-id="OAXbyBP1kKsX9klXdMsCbe"><!--pnid:lp4ms91HmqOwnjwZgeuCLO-->0.0090</td>
+      <td data-page-node-id="xy7ZGit98DnvhYvzDY9TXy"><!--pnid:gBWUvx739FsfpcOzDjnQ1m-->0.2931</td>
+      <td data-page-node-id="qzU7oqCZkvNz0GKPaanor9"><!--pnid:VNBI8wawY1BN7C7d6Hqp5V-->0.1021</td>
+      <td data-page-node-id="ssbrVp3fjhQBhHGcgxb6C4"><!--pnid:0mdC9qKXWj67mNCn9YXND0-->0.0270</td>
+    </tr>
+  </tbody>
+</table>
+<h3 data-page-node-id="swZRMZXdqthgSO8w6zK8P3"><!--pnid:c6DfXdOtCSMSBUluSOkG2x-->多空组合（Top 组 − Bottom 组）</h3>
+<div data-page-node-id="6BfJyiqHqYOHKJx9Upn3R9" class="kpi">
+<div data-page-node-id="Jmdjc4b41wbvDQjGzL42S3"><b data-page-node-id="2teIWXQ6B9jt3Yldohh5Ls"><!--pnid:YPuvmoqGHPxTTmuiVQo9Sp-->169.4%</b><span data-page-node-id="BiPHO9MfeNlnr8KOb2oPOC"><!--pnid:lbaJSS0etRqcOxE5VBawMA-->累计收益</span></div>
+<div data-page-node-id="EHa4Qmk2Vjq7YRtQ9p4cMb"><b data-page-node-id="p3AWuyzJkoR4l3xLSwJ3lK"><!--pnid:BIBq2TejY3VDZk3kbcRBs2-->16.94%</b><span data-page-node-id="uNtmAEg2j74YVw1aVXOu2v"><!--pnid:p7gJoM7GOrXBphOTDSsRqk-->年化</span></div>
+<div data-page-node-id="80pWc2fzKd1V9G82USIIbC"><b data-page-node-id="X4e1hwQ1KrFVRapTy6MniS"><!--pnid:uo6bwAq5ezLfzh763t0utR-->89.5%</b><span data-page-node-id="LQfckRmlynDe6YubwPjEFn"><!--pnid:RdB4OkWabSpUgsFJSWefhs-->期胜率</span></div>
+<div data-page-node-id="AVOllO64Ho0q0xl6EmcGay"><b data-page-node-id="kARVHZCjXFbkPvJXEGHkGE"><!--pnid:ohKGHHGIBjck8BGnmL7hhT-->19</b><span data-page-node-id="BenJCiCxhkx3qgrrhzzRcx"><!--pnid:ivOKDADvQk6BZL29FiDilk-->期数</span></div>
+</div>
+<div data-page-node-id="GoXY3UNigLwTAi1wXcPmcQ">                            <div data-page-node-id="ijvRA4trAflHGtBXMqTxSO" class="plotly-graph-div" id="e3146101-4130-4793-a35e-27460c639c68" style="height:380px; width:100%"></div>            <script data-page-node-id="y3GMyZfuy4SGCOH2wH3ryp" data-pnid-children="s5IBde0pCS5qIPvciLJfFo" type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("e3146101-4130-4793-a35e-27460c639c68")) {                    Plotly.newPlot(                        "e3146101-4130-4793-a35e-27460c639c68",                        [{"mode":"lines+markers","name":"nav","x":["2018-05-01T00:00:00","2018-09-01T00:00:00","2018-11-01T00:00:00","2019-05-01T00:00:00","2019-09-01T00:00:00","2019-11-01T00:00:00","2020-05-01T00:00:00","2020-09-01T00:00:00","2020-11-01T00:00:00","2021-05-01T00:00:00","2021-09-01T00:00:00","2021-11-01T00:00:00","2022-05-01T00:00:00","2022-09-01T00:00:00","2022-11-01T00:00:00","2023-05-01T00:00:00","2023-09-01T00:00:00","2023-11-01T00:00:00","2024-05-01T00:00:00"],"y":{"dtype":"f8","bdata":"GF6mSQpa8D8169oAK93wP+aQqX6YB\u002fI\u002f72C+9EBM9D+nVQlxmk71P4i3mEnNWvc\u002fUVh+PaiK+D+o\u002fq4lCPX5P+oqvrItbPw\u002fJ\u002fMqJZbf\u002fT+9KsYc0cr9P5+Jpu8sQP8\u002fsbff\u002fh3e\u002fj\u002fAM72nOrX\u002fP+oaBI4v6wBAYadh\u002fPCsAUCCn2QYBVwCQNBKQ++k3ANANWqbbySOBUA="},"type":"scatter"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"geo":{"bgcolor":"white","lakecolor":"white","landcolor":"white","showlakes":true,"showland":true,"subunitcolor":"#C8D4E3"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"light"},"paper_bgcolor":"white","plot_bgcolor":"white","polar":{"angularaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""},"bgcolor":"white","radialaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"yaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"zaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"ternary":{"aaxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"baxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"bgcolor":"white","caxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""}},"title":{"x":0.05},"xaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2}}},"margin":{"l":40,"r":20,"t":50,"b":40},"title":{"text":"多空净值曲线"},"xaxis":{"title":{"text":"日期"}},"yaxis":{"title":{"text":"净值"}},"height":380},                        {"displayModeBar": false, "responsive": true}                    )                };            </script>        </div>
+<h3 data-page-node-id="fSMVFlvs81sOEozN2sA7cn"><!--pnid:kXQR2xf8MRGY7UcByH1caC-->IC 序列</h3>
+<div data-page-node-id="xJk9Oho5Yi09rGo9oIeW1b">                            <div data-page-node-id="OYgmusribW10JrpxsLIiU3" class="plotly-graph-div" id="9f3a5d68-f37b-4c07-8b93-7d083eec637d" style="height:380px; width:100%"></div>            <script data-page-node-id="ulhktB9SKvgzM7tkBoT38W" data-pnid-children="blJaGwsaDM9jxUqDjdZ78B" type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("9f3a5d68-f37b-4c07-8b93-7d083eec637d")) {                    Plotly.newPlot(                        "9f3a5d68-f37b-4c07-8b93-7d083eec637d",                        [{"mode":"lines+markers","name":"ic","x":["2018-05-01T00:00:00","2018-09-01T00:00:00","2018-11-01T00:00:00","2019-05-01T00:00:00","2019-09-01T00:00:00","2019-11-01T00:00:00","2020-05-01T00:00:00","2020-09-01T00:00:00","2020-11-01T00:00:00","2021-05-01T00:00:00","2021-09-01T00:00:00","2021-11-01T00:00:00","2022-05-01T00:00:00","2022-09-01T00:00:00","2022-11-01T00:00:00","2023-05-01T00:00:00","2023-09-01T00:00:00","2023-11-01T00:00:00","2024-05-01T00:00:00"],"y":{"dtype":"f8","bdata":"mOJpog1isj\u002fNxi+zkiS8P1\u002fA42D9m7o\u002fh7kDOe3Txj\u002fxHm4Qu4i5P+oaNEv+Z74\u002fQXyNLrSLuz\u002fAb4jz2LDBPwNhwFKzOME\u002ffm3uPBkQuz+mmX8jWmmyP9l6pBMizLo\u002f1PZNq9Ypkz+DTgwwYgGrPxwdkDVXia0\u002fm+hPmaEdsj8bV0wE\u002fLK7P4\u002fgLde+lMI\u002fKAD8brv1wD8="},"type":"scatter"},{"mode":"lines+markers","name":"rankic","x":["2018-05-01T00:00:00","2018-09-01T00:00:00","2018-11-01T00:00:00","2019-05-01T00:00:00","2019-09-01T00:00:00","2019-11-01T00:00:00","2020-05-01T00:00:00","2020-09-01T00:00:00","2020-11-01T00:00:00","2021-05-01T00:00:00","2021-09-01T00:00:00","2021-11-01T00:00:00","2022-05-01T00:00:00","2022-09-01T00:00:00","2022-11-01T00:00:00","2023-05-01T00:00:00","2023-09-01T00:00:00","2023-11-01T00:00:00","2024-05-01T00:00:00"],"y":{"dtype":"f8","bdata":"frrcg\u002ffLsz8mJOmXqp+7P0V0wsI5l7o\u002fSU+MoFoPxT8XqU0cBbS7P9RboiX\u002fR70\u002fiGc2HjdAvz8UlJXAQgjBP8nXjec7Ir0\u002fw6wA7yMvvT+2jBm1puyvP2Dh2+yYzLo\u002fTd58M7zqkD8rRJFbb3ikP8P6o76qSKU\u002fYkWHCLPXqD\u002fbBN3tzoW1P+1HbzscPcM\u002fs8mYMvpTwD8="},"type":"scatter"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"geo":{"bgcolor":"white","lakecolor":"white","landcolor":"white","showlakes":true,"showland":true,"subunitcolor":"#C8D4E3"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"light"},"paper_bgcolor":"white","plot_bgcolor":"white","polar":{"angularaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""},"bgcolor":"white","radialaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"yaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"zaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"ternary":{"aaxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"baxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"bgcolor":"white","caxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""}},"title":{"x":0.05},"xaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2}}},"margin":{"l":40,"r":20,"t":50,"b":40},"title":{"text":"每期 IC 与 RankIC"},"xaxis":{"title":{"text":"日期"}},"yaxis":{"title":{"text":"IC"}},"height":380},                        {"displayModeBar": false, "responsive": true}                    )                };            </script>        </div>
+<div data-page-node-id="sLEWX6I4htmsBLGrrGVD2E">                            <div data-page-node-id="hN7uKebvzyTH65QgPHsmKM" class="plotly-graph-div" id="a15b3bb5-d3ce-41ff-9eed-a8c275609d96" style="height:380px; width:100%"></div>            <script data-page-node-id="7XZUHUlpcPh4xKIEzQztSZ" data-pnid-children="QB584pIep7hKSJJ0UfwPI0" type="text/javascript">                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("a15b3bb5-d3ce-41ff-9eed-a8c275609d96")) {                    Plotly.newPlot(                        "a15b3bb5-d3ce-41ff-9eed-a8c275609d96",                        [{"mode":"lines+markers","name":"cum_ic","x":["2018-05-01T00:00:00","2018-09-01T00:00:00","2018-11-01T00:00:00","2019-05-01T00:00:00","2019-09-01T00:00:00","2019-11-01T00:00:00","2020-05-01T00:00:00","2020-09-01T00:00:00","2020-11-01T00:00:00","2021-05-01T00:00:00","2021-09-01T00:00:00","2021-11-01T00:00:00","2022-05-01T00:00:00","2022-09-01T00:00:00","2022-11-01T00:00:00","2023-05-01T00:00:00","2023-09-01T00:00:00","2023-11-01T00:00:00","2024-05-01T00:00:00"],"y":{"dtype":"f8","bdata":"frrcg\u002ffLsz9S7+IN0bXHP7oUove2gNI\u002fXjzoR2QI3T9S033HsvrhP8weMqyyo+U\u002fvev4j7mL6T\u002fCUB5Ays3tP94FiN4IufA\u002fqhB4HfuL8j8Q3SBTYIvzPyab7uEpOPU\u002fn4680tR79T\u002fAGJlNmB\u002f2P5Y4jqPdyfY\u002fwXLSO5uQ9z8PQ7Aq+Oj4Pw0sHrKbUPs\u002fQ0Vx+Bpb\u002fT8="},"type":"scatter"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"geo":{"bgcolor":"white","lakecolor":"white","landcolor":"white","showlakes":true,"showland":true,"subunitcolor":"#C8D4E3"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"light"},"paper_bgcolor":"white","plot_bgcolor":"white","polar":{"angularaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""},"bgcolor":"white","radialaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"yaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"zaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"ternary":{"aaxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"baxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"bgcolor":"white","caxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""}},"title":{"x":0.05},"xaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2}}},"margin":{"l":40,"r":20,"t":50,"b":40},"title":{"text":"累积 RankIC"},"xaxis":{"title":{"text":"日期"}},"yaxis":{"title":{"text":"累积 RankIC"}},"height":380},                        {"displayModeBar": false, "responsive": true}                    )                };            </script>        </div>
+<h2 data-page-node-id="M5qS0TwmRHBXo288k7Nn1d"><!--pnid:lTbZKfeDVMRXFVPRIb6OJF-->三、最新一期 Top 持仓</h2>
+<table data-page-node-id="mvZM1NQKpxd7y891SaTbTC" class="dataframe tbl">
+  <thead data-page-node-id="izcGERdvwyHHqHShfrY0ym">
+    <tr data-page-node-id="gJNThPOax0khZugICRNtTT" style="text-align:right">
+      <th data-page-node-id="C7UtL5YEQ8v1PIMoBk9zir"><!--pnid:c6DNunQO91I3ULJ6gHAtar-->ts_code</th>
+      <th data-page-node-id="RHgysnMNo374YIUw8Bpi2W"><!--pnid:35BN6yitkd1TBwVDA7bImp-->score</th>
+      <th data-page-node-id="TC2PSAJZ2UPCwhrLwUfudd"><!--pnid:NBnJY2vKw9gyaDtPL6uJeE-->prof</th>
+      <th data-page-node-id="NZlOYldnMjdH647qQPhL5E"><!--pnid:YP7aq6TRqmHPNmFCPGQ9T9-->prof_chg</th>
+      <th data-page-node-id="aoeGowDF469XnS1najPO9T"><!--pnid:34jwnxX8yMxyAhNK5JEVMR-->prof_stab</th>
+      <th data-page-node-id="2YSvFOGFkOlElgLqZUbc4G"><!--pnid:NdN2S9lcHJuQgJskZkStCl-->asset_growth</th>
+      <th data-page-node-id="7F22M5ieToVSa5ALrLcyGE"><!--pnid:MWf29c16a6ljNOuQsj0be4-->net_issue</th>
+      <th data-page-node-id="TxW31tQttzMU5BS1FSFB0M"><!--pnid:tIIL3ynwvSpiUTTI2Yas8O-->bm_ind</th>
+      <th data-page-node-id="MJWyaSpjBdzQpujbs6N3EI"><!--pnid:DDWIIslx8mxzMLy0EDt4W5-->ep_ind</th>
+      <th data-page-node-id="drInEctx7dpQgCGmwEwLH8"><!--pnid:Gl4uUujp6Rsl5k2ku3vCot-->size</th>
+      <th data-page-node-id="mKCwU0kYTCtmP8m7HxJM1q"><!--pnid:ow51jNMu28T5DoUfCiAIMm-->industry</th>
+      <th data-page-node-id="fHPts9wTWERsVJ96097xpq"><!--pnid:Ze1xWen1jPNJSAllYouB1a-->total_mv</th>
+    </tr>
+  </thead>
+  <tbody data-page-node-id="stJfyuYbpMyxIlxUgOvMbQ">
+    <tr data-page-node-id="qKEPEv6udsm7ECbI9dmJhw">
+      <td data-page-node-id="GiLEWNU3WZCXLw28X4KrtH"><!--pnid:1a9dUD2m3a4GRpfeWsLJQd-->600244.SH</td>
+      <td data-page-node-id="bVhpCjasB3tRixVEgua4f8"><!--pnid:0ZP9ITAldNPSAi31zUJba4-->100.0000</td>
+      <td data-page-node-id="QpiQwhHSeBu6vWihS8CkuX"><!--pnid:4khBAAXxcB8C0KVfeFo3iB-->0.4433</td>
+      <td data-page-node-id="nwi50lVP2gC1Lb39ssmzVa"><!--pnid:qN6uCd1alP6YEeLhzkBNXu-->0.0004</td>
+      <td data-page-node-id="Ir12yQghFZ6BBD8FQ0FykP"><!--pnid:qBjRp3ZnlLpOVtV2ASRL2o-->57.1116</td>
+      <td data-page-node-id="z9IhOljminSLIr2hRLCszD"><!--pnid:Orjg8OuM4L1TegVqmp68mQ-->-0.0343</td>
+      <td data-page-node-id="Hn4t3lwEt6E38nM2YCdOXB"><!--pnid:CltxSBZh8eGtmLyOccWKLQ-->-0.3770</td>
+      <td data-page-node-id="HOZ7UPyvKNMQCrDLPxW9cs"><!--pnid:EE7JMmQSbC1em7FBcq1VMI-->1.8277</td>
+      <td data-page-node-id="KuWpElnMwC9ai28k8vZzjq"><!--pnid:EO4K4VTC01Q6HKnUBsN2ZD-->0.6365</td>
+      <td data-page-node-id="qWN5xT0533vVW0ghDmQofX"><!--pnid:ZZcUjDsD9feIm6kQJrtTFV-->20.8632</td>
+      <td data-page-node-id="7S7q5Y9c4NAgLn0KO2vF5G"><!--pnid:XIMT7v2aRoeuqXpKIc72BH-->SW20</td>
+      <td data-page-node-id="E3J80CEE2zygcLT98eNK4k"><!--pnid:gT5vI3IWrnIvbj7srWb7mz-->1150192638.0195</td>
+    </tr>
+    <tr data-page-node-id="m3DpapfQYQ50PaITS4Eivi">
+      <td data-page-node-id="NPPNXilg8T1MfIF2BZ0OVt"><!--pnid:zC1ac69zrRVBT8eYmP8Gb0-->600110.SH</td>
+      <td data-page-node-id="ZrO52GMKkHrf5kCp28M5OQ"><!--pnid:mrRy8v93HVVuCMa1bCIQv7-->99.8100</td>
+      <td data-page-node-id="YB5GHnvVxtuP4u9Gvd2do4"><!--pnid:PUICXSaDeEBKdklccEzvPK-->0.4891</td>
+      <td data-page-node-id="5txapPezI8qNxdoXWkmnIf"><!--pnid:XTbWr46sWFT0jXLriCBgp8-->0.0061</td>
+      <td data-page-node-id="u451UksQkFT77hoWeFupuj"><!--pnid:Nt49Xl9UQz6xcJHX98supc-->21.0333</td>
+      <td data-page-node-id="pq0Ox99kqDmri4dnwFjZHS"><!--pnid:LB6cee9fY5r6XB8VBgi3Ix-->-0.0258</td>
+      <td data-page-node-id="ZzAxL753UzSX5EwafXDdwD"><!--pnid:vDKZ3IG5LIFqcEeXisRsyd-->-0.2384</td>
+      <td data-page-node-id="xIiYe0oGMyilmbioPYTpoB"><!--pnid:iVmp2vDYC4LMCaGNmwrFzn-->4.9996</td>
+      <td data-page-node-id="rbxEWgEVSsM5MQtxmL3WYD"><!--pnid:M59hKdjxt84P5fFiIEvZvA-->1.5981</td>
+      <td data-page-node-id="KlykSHYsaI1CBIpB8cZKxX"><!--pnid:oM5nfveoiGEgysjQVobJkX-->22.5961</td>
+      <td data-page-node-id="YLuC2X71SswECyuKNIdrv5"><!--pnid:9xpr1RBhy5trNhIZ6U1hco-->SW26</td>
+      <td data-page-node-id="GDZC6kC3nznIZCRJH6Xzdd"><!--pnid:Gix1kZtW6RLtiHCqRfxktw-->6506847307.6002</td>
+    </tr>
+    <tr data-page-node-id="vvhzr27HNRAtBh2pVkQSg6">
+      <td data-page-node-id="7D59MS1SFkVuQaKby9FDmU"><!--pnid:tKIVvQVsXeOZG1ztE3MeW4-->000151.SZ</td>
+      <td data-page-node-id="1e8rAm8W7tVwDrzxFZVpJd"><!--pnid:GP6q3myK1qKLsVDiH77mMH-->99.6200</td>
+      <td data-page-node-id="hF9eFbvL08caiAr1osWuap"><!--pnid:sHvotkogqh9RqWn32VLBSM-->0.6123</td>
+      <td data-page-node-id="3ef4kgGuNEtwiuWKvdGh1r"><!--pnid:mG6HEFN4XAuQRjmScF4BKj-->0.0141</td>
+      <td data-page-node-id="qdzq3umXZbghVL7K8aeT6P"><!--pnid:eDJmXf2EZOAxLMzDbHwo7a-->27.3432</td>
+      <td data-page-node-id="DOMI3wCz2vQsUKZhZRWUVx"><!--pnid:SilD2mPIwQHGJ9GIYqjUxD-->0.1174</td>
+      <td data-page-node-id="r4vYLo98mMwbNdekWz6s04"><!--pnid:4g62v7xZ4StCRmK7PCYfZI-->-0.5107</td>
+      <td data-page-node-id="0Vzd2zZtWaEylQlJDqe7UL"><!--pnid:m8GKawN2n8QM2UwTLDJBz3-->1.4315</td>
+      <td data-page-node-id="yhHpM4aZA8LUzcFIaaXHol"><!--pnid:tVqop4qhx8ua9UBUwFzTvU-->0.6952</td>
+      <td data-page-node-id="1nTpow0JGaKvseRcZvGT4X"><!--pnid:99KQXIYg5pDrJdlZ3XcaUa-->23.4897</td>
+      <td data-page-node-id="1eKTOfQPfdgKkLylLIasgm"><!--pnid:maGngyP0oJa1L7aiqMnwLz-->SW11</td>
+      <td data-page-node-id="tE9wtZqyYwAoMIBcJsCq3v"><!--pnid:Qdh2SbLifR27SSRjKvSojg-->15902217118.7089</td>
+    </tr>
+    <tr data-page-node-id="6hIEb85dnpnEa4kBruK2Dk">
+      <td data-page-node-id="4iEOnJFu16TIMligrlNK5e"><!--pnid:uMhEWsmPgySUuxuiIAb0f2-->600420.SH</td>
+      <td data-page-node-id="1UfasErnaoGr9r0OB4zAGH"><!--pnid:f8e3apdaqQJwgOviH3Djla-->99.4300</td>
+      <td data-page-node-id="gufUC3tQk3FGVqil6FYx4v"><!--pnid:wvR9MCO5oTRmWnsrcEEMAF-->0.4363</td>
+      <td data-page-node-id="Ky5WsLJQD33OU8OpxXQXQp"><!--pnid:3fzEFK3VPBCUSOssumq6d8-->0.0184</td>
+      <td data-page-node-id="VecESu8iA5ak5qSljiJNum"><!--pnid:novY14qlvpUl0G6ahA2Q5m-->21.8155</td>
+      <td data-page-node-id="Emc6rmHwDrlbDl3qzz4pbd"><!--pnid:OsswrmnSeY8N6NwXPVsJex-->-0.0146</td>
+      <td data-page-node-id="3rvg5m0vk6ItiYKxWiqR2c"><!--pnid:JHwa6cYyp7f13OQBdWGu6Y-->-0.3621</td>
+      <td data-page-node-id="NFQLMFM0TIMbFZVSMZi0r6"><!--pnid:J6LfzC77QzfkfoiwfzjfRU-->2.5322</td>
+      <td data-page-node-id="GIoWVuBdxxAfRIzumvFEWN"><!--pnid:FlWbP8PQKvODR7sqqTDL3K-->0.8353</td>
+      <td data-page-node-id="F40QHVwHqEJNTTyEAM0ytd"><!--pnid:I4Ldf5V1tNMJe2Qyt8xLbA-->22.9712</td>
+      <td data-page-node-id="tmatSVuF40EsODGtkep5ul"><!--pnid:ENdEOJkEScHq2qeihoRUia-->SW00</td>
+      <td data-page-node-id="CfPTI04CwHR01WR2hQ90MS"><!--pnid:XMI6se9nONtcGh6DcZeBlG-->9467770124.4294</td>
+    </tr>
+    <tr data-page-node-id="R9WEdKSTRUApmDF89oAVMZ">
+      <td data-page-node-id="l0vS75BEJZURMMuNmVS7ML"><!--pnid:St1PrBrkOfx3TiulftOxQy-->000411.SZ</td>
+      <td data-page-node-id="X8XUwB9ksoJ6WLJY6DEyYd"><!--pnid:wf5akixQCFMLE3vkJdmstt-->99.2400</td>
+      <td data-page-node-id="9xTICyXkPwBvTIKCXxK3r0"><!--pnid:jJevjXsztHxPNccZ4Gyoyy-->0.5851</td>
+      <td data-page-node-id="KiqAuvs2tE3JZLE6qk18mg"><!--pnid:upeSIKEQvNFH8sZJT5EGrV-->0.0370</td>
+      <td data-page-node-id="v5EF3BQi9LT3HBnG396oHs"><!--pnid:yzG0mSuGipC7dmp0tY0IrT-->19.9536</td>
+      <td data-page-node-id="gqEDcWbT78yTZgGQCOW78j"><!--pnid:uiNhLeHyMFYV6xodvi1yzr-->0.3976</td>
+      <td data-page-node-id="3pSQTSxfCNaiszV8gyrgVF"><!--pnid:2Av5bIin6HvOYsrANUamDe-->-0.0573</td>
+      <td data-page-node-id="lkz9HybGNVZTqAVPbHIBwI"><!--pnid:sFjYH7M7U0gxDlW3lVepFe-->2.9040</td>
+      <td data-page-node-id="48rJGM1iRAHQC8nfdmOD38"><!--pnid:2HE2Pdtzjagd1U6rcewMDU-->1.4292</td>
+      <td data-page-node-id="K6Q2B4ioyUr1zXH8M3ZjD4"><!--pnid:AQJ5vQW16Nbx98k4DeeNk4-->23.0122</td>
+      <td data-page-node-id="jHdHUdTFwGI1CAkqUmLGg5"><!--pnid:4G5taR1vnR77nFGVsWuu6m-->SW19</td>
+      <td data-page-node-id="G6qiJDGtmfBRjml1F0gnw7"><!--pnid:LOEv3nq4Hf1GbsWIF3TWUy-->9864844927.1566</td>
+    </tr>
+    <tr data-page-node-id="cIDz2yphn19La44rl2OQgv">
+      <td data-page-node-id="RhvhEKhaT6bzXVjvyKRihW"><!--pnid:6goyblVh35vbaimXX9jXub-->000303.SZ</td>
+      <td data-page-node-id="VO41Q8goS6yKUJESfLF645"><!--pnid:2JMY3oFaP4QPYtMwMu3b5z-->99.0500</td>
+      <td data-page-node-id="YZcbxHla9m0b5KZEensACX"><!--pnid:TapKnR5flliJfLMFZbUUho-->0.6013</td>
+      <td data-page-node-id="yeZ7fCkmGAa6zQQFQuB4Tw"><!--pnid:GYNSvmtA6HLIezDWRhHCnL-->0.0348</td>
+      <td data-page-node-id="3vJgf6lYoczFgIWPT15wBx"><!--pnid:Bh9YKVsntuqTn68QyP0sfc-->20.1709</td>
+      <td data-page-node-id="qSZf9N54pAZ855Rs0H2GEu"><!--pnid:ni1mqdkuCKodHTZfBY3puQ-->0.3552</td>
+      <td data-page-node-id="AY7fUsxkAAmF4xfKUqcCcj"><!--pnid:MxtkqOEjyn7TycCFtibLfl-->-0.0876</td>
+      <td data-page-node-id="hk1zB2AFinjJthvqzINQ37"><!--pnid:ZJ0ibhewkm2QAd9ozzU8vF-->2.2578</td>
+      <td data-page-node-id="ELcqgLepVU1xgm9lceOvAR"><!--pnid:SOa24ROBenhQSJsy29z1NV-->0.9934</td>
+      <td data-page-node-id="l8TWmFwEpkA7T9qZVie3wv"><!--pnid:DKWoG2q03fAW3EhFavEQ3M-->21.7767</td>
+      <td data-page-node-id="8YTmMrZCNlo3OcDX0N5uBt"><!--pnid:30QtaRcKGaNYT0siKWtjS5-->SW23</td>
+      <td data-page-node-id="1YfzP1lxI9fx8WGbV2YhOO"><!--pnid:JxRIHsizCBLC1GHwxEIUsL-->2867340794.7901</td>
+    </tr>
+    <tr data-page-node-id="1ZVCxXc9X1UavY1svB0BJW">
+      <td data-page-node-id="szvlPeMf7d3mOmDCDaFpnf"><!--pnid:AvR9TD3XSNkNPzgrk62doB-->000233.SZ</td>
+      <td data-page-node-id="FJSrVzK9bFb625xWiqFs9n"><!--pnid:Z66KcWLD2ekNhbiYtNpY2y-->98.8600</td>
+      <td data-page-node-id="Av4c1YFhLJ5wH645EeadQn"><!--pnid:Gj5UCs8dccX4hElrO9mQ3f-->0.5524</td>
+      <td data-page-node-id="7RULDQDGuDSuczAO599Io1"><!--pnid:8CxOkcQoeLPoFezLV4euth-->-0.0006</td>
+      <td data-page-node-id="6f0MUBPT33EgqP4hTKvQ37"><!--pnid:QVwtCeknEuHSNZJdm7Sb04-->38.5695</td>
+      <td data-page-node-id="dTImHIn1eyCbrXtMyLQ1vC"><!--pnid:LQdjtFbqxosz3J7f3PBf4S-->0.0608</td>
+      <td data-page-node-id="mTQaBSgYi65FJI3aRJHcq1"><!--pnid:HXIyd6JF84EzOeif4Ophh0-->-0.2977</td>
+      <td data-page-node-id="K6yNimzxmLM790YwX6TweB"><!--pnid:WJvGddO3o1VLWkl2f04tFg-->0.6549</td>
+      <td data-page-node-id="wr9Nfepiivktv4lDsfY5Wv"><!--pnid:EFAn7ywjUS4Xvl47qPl7Nq-->0.2978</td>
+      <td data-page-node-id="P7f3gRUUXZb4qZys26fOB2"><!--pnid:1CNYtgUGMrW957etDKpzNG-->24.8691</td>
+      <td data-page-node-id="4X2WrmBt3P0NN6ddZOxYqu"><!--pnid:OfOyLoudKjGbM2Hy99zIHy-->SW09</td>
+      <td data-page-node-id="gpXuWTHtcvW5HZOodgjg2u"><!--pnid:iW7JwjtBvb4S3uxGA2hO4h-->63167705020.1237</td>
+    </tr>
+    <tr data-page-node-id="GWqJWCT9wpC4gHqPP30DPo">
+      <td data-page-node-id="aGUDutkyhz4bB19GHlg0T9"><!--pnid:Hf0YotPuLdPGJHjtr4vKKx-->000165.SZ</td>
+      <td data-page-node-id="lqUAX9OGPWJXGdogo34dXi"><!--pnid:6nXiNm1gPVUVMqFA6LnrPX-->98.6700</td>
+      <td data-page-node-id="gG3vkPH7f3VrHSPRkHgTn9"><!--pnid:bP8SG2iaDBlcQ1puwS1dOW-->0.5250</td>
+      <td data-page-node-id="EoPaCOybqSqichDorsJtb7"><!--pnid:zlrcUd3dGL1jAkqW0rZT54-->0.0105</td>
+      <td data-page-node-id="4GMixWPACVGZcpwMagoV9s"><!--pnid:l5XHVYvei4Owhg8sNJ6onm-->25.2550</td>
+      <td data-page-node-id="llEnJOsVLF1go4jxP4DzpQ"><!--pnid:BD92OuCFkhJwcoRRJsGmpN-->0.2869</td>
+      <td data-page-node-id="NtczvoAfvAzTDarqgfYExb"><!--pnid:FW6TYI6pfC1eWiN06j2MYZ-->-0.0572</td>
+      <td data-page-node-id="Kg5W7xhMiSaaEaY0DxvDru"><!--pnid:b9GY3SQ5GodsSLEO7GJSXq-->2.9239</td>
+      <td data-page-node-id="uxeVRAvrshzwYpZPihgRPU"><!--pnid:b4foGxzjrWtrA2LJguF5jl-->1.1923</td>
+      <td data-page-node-id="eRszDM5a0Fx0OxRY1LeIFW"><!--pnid:A1k7ysEejBldNVTTAc03Cd-->24.0706</td>
+      <td data-page-node-id="FAZwlFMEGnsPbcOJcCYwMs"><!--pnid:dBkBKCtwlfz3L0yY8LdpPl-->SW25</td>
+      <td data-page-node-id="Fuw5vQrCpaMAEcwuGhgCvQ"><!--pnid:ixgxNDz4j1qr3XjyUUgHvO-->28427646930.6155</td>
+    </tr>
+    <tr data-page-node-id="Nw9XrjHO8sBO6LJMFy8DjG">
+      <td data-page-node-id="Yh4bCiZfmT7HN5XK7GTpnj"><!--pnid:y7etqlpTqSkXihFd5W52LL-->000079.SZ</td>
+      <td data-page-node-id="5E28qVjKPjvm8VhIRZ83hk"><!--pnid:QLiSu2LtdKzcqMrdamaViP-->98.4800</td>
+      <td data-page-node-id="sShLOnrgpHfIJREfSLBWHE"><!--pnid:9wV7kq82gKf1uZpUOPSaQG-->0.5115</td>
+      <td data-page-node-id="e9eo1hWRL9XsKQgekkvqIw"><!--pnid:IDZK1Rq9meMZAzeE56v6Sl-->0.0250</td>
+      <td data-page-node-id="1nIVRLBjdxhi4VDxvHBEzi"><!--pnid:PX77ZEUZDq6V452EupSVfS-->15.4985</td>
+      <td data-page-node-id="SWyPO8vaGR0hFILfj8zKUC"><!--pnid:EJPNH6UqwVrsj3ARTv1fOX-->0.0894</td>
+      <td data-page-node-id="tuAZakWu5sUauP6GE1NDTl"><!--pnid:weGL8IxfM3h8LUx9MXQ6s3-->-0.1716</td>
+      <td data-page-node-id="IllqZvXUmmEB4fmML6olHE"><!--pnid:rZzuH0EvNSggCM1aLeX5L1-->0.4626</td>
+      <td data-page-node-id="ulh5h1bH6BRUqs9pxxb1Sj"><!--pnid:7OCj5Y6aTVWT3eXhp3WKQe-->0.1810</td>
+      <td data-page-node-id="NZDG7AI1oJB8MPruX3H0Jb"><!--pnid:kxRktfrzDyfQwq6EZ8XlrP-->21.6467</td>
+      <td data-page-node-id="9999OMOSRCgB6b0LTCx4N6"><!--pnid:byaiwhZOM4AEpOvXcAYsfy-->SW23</td>
+      <td data-page-node-id="VDhomwjYbuxb9MjqSlDK1c"><!--pnid:RFiysfkmchlujct6M0PiGl-->2517849230.7481</td>
+    </tr>
+    <tr data-page-node-id="pFlhKKCXso4F8DVQhTeQM0">
+      <td data-page-node-id="WOM9unQCq7T8wTA3yfmfTl"><!--pnid:Gzx8TwEMxO29dnDOOe22GM-->600302.SH</td>
+      <td data-page-node-id="db6IY6wjAgAWDILZNkgn63"><!--pnid:nkEfIaFFknVWfZ8lmljozo-->98.2900</td>
+      <td data-page-node-id="8n4wPHAggBQsa5OPIhmBwU"><!--pnid:vjOrlLytlOjc28RZdubn6g-->0.4004</td>
+      <td data-page-node-id="EmhL7lfpnLDPNJlpNeZDk4"><!--pnid:7aQIvttJxWKXdNBcAc0xaV-->0.0093</td>
+      <td data-page-node-id="Tm5FeSVVselcbLQG5FUKSb"><!--pnid:vkojHExK9wS1rvTqDQqsvE-->26.8259</td>
+      <td data-page-node-id="FmJBwIQ9eXpBIpTZUuI5zc"><!--pnid:Z9GzMEyxi1SxVjJv71QRtL-->0.2354</td>
+      <td data-page-node-id="ulKWeD6hh9Hclrxug3D9qj"><!--pnid:6jzIYE4HSpekPYKx6bESqc-->-0.0629</td>
+      <td data-page-node-id="a1ngmO7lGAKymxNhAzvo7s"><!--pnid:MhoR9bVQSo5gsQST3BDern-->3.3658</td>
+      <td data-page-node-id="JV2qXenz7U0yJV6uaX8UYD"><!--pnid:CKADQy5tA8KEMyv0E2byuB-->1.0595</td>
+      <td data-page-node-id="V6T0zds8g4iJltRKkgGZEj"><!--pnid:qboKmKagShSq3F8xqWtKop-->21.8656</td>
+      <td data-page-node-id="hF897A1NN9cugDKICVZZS2"><!--pnid:6R8Z0u7hzKnLq1tXd5gMXG-->SW22</td>
+      <td data-page-node-id="19QNMODFHkCkU5BvqxAALM"><!--pnid:kF0qKWRGC3w4HBw7uJSj0e-->3134183336.4353</td>
+    </tr>
+    <tr data-page-node-id="pLVF9BcMan2a1mBHEyAfrG">
+      <td data-page-node-id="UZ32QviF0KziERIp9BsGWf"><!--pnid:2oUEkO9EsmZG70vhLBlyUH-->000181.SZ</td>
+      <td data-page-node-id="AgDUn5gMBJ6J5AaiS3IvaC"><!--pnid:1XqU6BjjP2lhG15Qy2NW1V-->98.1000</td>
+      <td data-page-node-id="HNYXuYe8Pmobj0EyCTmHU0"><!--pnid:iLYaSG0zqHfKTFuuXZNfPw-->0.3916</td>
+      <td data-page-node-id="lXz2JAmvCjdvfFFB9AHpZb"><!--pnid:POtWx6A2EqTZIBE7U5vHF9-->0.0239</td>
+      <td data-page-node-id="G2N5ci2wsWKZejLMfp7ZXo"><!--pnid:CKWtYIcwb8PxpSgKGMVws9-->16.2993</td>
+      <td data-page-node-id="VsCFyau9j3W8CvmA1nvUKg"><!--pnid:N3JzznEoyPZUfGLRFsAEDf-->0.0022</td>
+      <td data-page-node-id="ncKoLmMnFfCZDe5lYl1YrY"><!--pnid:KDjxUvr7R7acRVpp7bI8mB-->-0.1308</td>
+      <td data-page-node-id="h4KFthqr5lDBtDVL374XsU"><!--pnid:zqr9vVld87dPDcJa1T32uf-->3.6047</td>
+      <td data-page-node-id="hI2iJwAt2rVWDHTD6t4WE8"><!--pnid:OUTCrGjWKQ1DKTl5cdZaxY-->0.9021</td>
+      <td data-page-node-id="pZYh1Q4th5JzugmdL5IAd5"><!--pnid:BGxCSqqZBPiWiNMxkzxd6K-->22.9101</td>
+      <td data-page-node-id="nQHypCDEnEaZ0i2xi7B80r"><!--pnid:pu6kLxAybDcvWpbL4yDqF0-->SW13</td>
+      <td data-page-node-id="kfrs7COQbVjlVGxJQBO11l"><!--pnid:167nNFUNPDPjNSpj4ODJ49-->8907099102.7086</td>
+    </tr>
+    <tr data-page-node-id="SPjygM1kfFlAV3jbjdHPOR">
+      <td data-page-node-id="7g57pFQCtfujO3iBUxE03k"><!--pnid:UQEVVJvEpkxR6FChrcnQfZ-->600296.SH</td>
+      <td data-page-node-id="KpLhCbTghDrZIBl22Telz4"><!--pnid:fXhV9ontLu3DVQo5hwqEnG-->97.9100</td>
+      <td data-page-node-id="uf0ZdsHiSDctQjFKiYV0zz"><!--pnid:4rQLEnTuCk70GaGbuMxEj3-->0.5040</td>
+      <td data-page-node-id="72lA6NqatVWZdGQn1KTeye"><!--pnid:rjfCoNMFQB1ykJsCS4iBHA-->0.0326</td>
+      <td data-page-node-id="lJ3i0KZ51Reya1xcZYj2DI"><!--pnid:P175As3iNoH7W48uLbHX0a-->14.9257</td>
+      <td data-page-node-id="ZDX1LsAtN4SYFGMUyLyleh"><!--pnid:Gq9h76Iy5qdv9vboUDjmSB-->0.1862</td>
+      <td data-page-node-id="5Mc7bnezebVlxeNLUrja9w"><!--pnid:JOry4pldVaKUibVji64uEy-->-0.0976</td>
+      <td data-page-node-id="TjIZSij2FxEI4P3RB3KxLV"><!--pnid:pOTluk6iCpc8VS6Db2E1QO-->0.8090</td>
+      <td data-page-node-id="kRTVMLvEvtAcUYDoQKq4gg"><!--pnid:LwKfVTYzIOgW0JLuQuzo0u-->0.3394</td>
+      <td data-page-node-id="sbEpI3meoFmhuENstZJRWK"><!--pnid:gXXJN12yISfXnCYjVz6hUn-->20.3757</td>
+      <td data-page-node-id="z3T773xrzbU9Twj9lLOKoG"><!--pnid:L8Ei0scpy6tPTWdURbfGvn-->SW16</td>
+      <td data-page-node-id="5EYhHEQAFwzmAM71sR2y5D"><!--pnid:BlBDTfanhbzhsAJiCj8JSA-->706370529.6829</td>
+    </tr>
+    <tr data-page-node-id="bEhvhS6QLTE2EoeIReSemP">
+      <td data-page-node-id="yH9UN4YbqZeJbP4icZZbyj"><!--pnid:8alu2nIqLSpZ9h7nBeeV1J-->600372.SH</td>
+      <td data-page-node-id="6tXJP5zfYfjhjCl8GgUG7e"><!--pnid:wcjrs1jj8rQdlavwhdHe43-->97.7200</td>
+      <td data-page-node-id="jPZLv4zWtBPPgs8ibcFki8"><!--pnid:7FJsONxZiQ7e58IpWLO7YV-->0.6747</td>
+      <td data-page-node-id="lpSdzDKmKE10hjJtuM1iwj"><!--pnid:rXGKgxx7yrbli4NHqhzsH8-->0.0399</td>
+      <td data-page-node-id="H6LOF3QcMUycHw0baDD0bB"><!--pnid:XOlx8Fj1SdkC6CpoUOnqXT-->16.3610</td>
+      <td data-page-node-id="requzQwatQTaoEIlf2ybXx"><!--pnid:doboNSSWOwHLE8I2YB55aN-->0.3219</td>
+      <td data-page-node-id="G3X3621QOne618o8RErY91"><!--pnid:kVLoJhoBFcKJXYkCPREFMi-->0.0220</td>
+      <td data-page-node-id="K9TxO5kcp1N4fadsckB62I"><!--pnid:D8XRafq8ij7sS5HMdnVLOs-->0.9290</td>
+      <td data-page-node-id="azaOAVHfqbFecmpEBxF3NR"><!--pnid:fHjbHJz5PXut9FSOgMsQhG-->0.4090</td>
+      <td data-page-node-id="noQccBNC2IFpt3E62vGRPV"><!--pnid:FrjYYj54VePpPBERkpC0ec-->22.5018</td>
+      <td data-page-node-id="t6rPBziBXE8fBauZhSaJaR"><!--pnid:dbRUIXclfrO4XjbWtglciK-->SW08</td>
+      <td data-page-node-id="VqnU4EecAVA7pjXWApDDYV"><!--pnid:DtshV86zocSI9ro2Q3elBG-->5921077316.0903</td>
+    </tr>
+    <tr data-page-node-id="Y5M0LlT4cLKU1FWhNrCNJK">
+      <td data-page-node-id="mzEridj9tRGk4Fu7iPvEEn"><!--pnid:zHp5JgPM0HTq41emDeJDjX-->600582.SH</td>
+      <td data-page-node-id="Ym4YZEQPFQ6xJaeQFxOk6w"><!--pnid:Wf2hwdPuWQAwP0ScZBZMnZ-->97.5300</td>
+      <td data-page-node-id="F7iOwzNN5jJbq3iZwLsmW8"><!--pnid:OqxqPZP3oDeNJ3t8yJm8mt-->0.6333</td>
+      <td data-page-node-id="BIbqejuxevtkcOqys8xWKK"><!--pnid:of2oYkMyP4xdDRPjdOzE61-->0.0062</td>
+      <td data-page-node-id="FbKeoQ2BVw3TkZhWHpBcd6"><!--pnid:m2EPlooO8M6Bs3Zit6DIDc-->29.1907</td>
+      <td data-page-node-id="2dWXUdnnvH4z5tsEItMOTe"><!--pnid:vfR3XVVXs4dj4vUZ3Cn20N-->0.1443</td>
+      <td data-page-node-id="6itZoXciNxBzVZFIT0Uqav"><!--pnid:Jp73szogKkoQqgSzYoAecQ-->-0.1522</td>
+      <td data-page-node-id="wjBd2N3VV36e9xcTkVgGlI"><!--pnid:KDVOIApNAcTFCeoxQdzyHn-->0.3400</td>
+      <td data-page-node-id="XGTTVC5VnHa2REQ84W4K9y"><!--pnid:6yvnfuClRCuCXgWRv8S2jt-->0.1375</td>
+      <td data-page-node-id="jVWj0pwMgE3rwwUO6DOQ23"><!--pnid:PRKVt5HBHJKYN5WZKmmvwp-->23.7571</td>
+      <td data-page-node-id="gS8ID2aHbmttYaCGBBCxq9"><!--pnid:yiYoNHzF1sSNZuUlm7Z5zZ-->SW22</td>
+      <td data-page-node-id="90gkeH1N4iz78KafQSDFbj"><!--pnid:8Fi5XvD6Fpqi7x4oddsGr3-->20776149499.7798</td>
+    </tr>
+    <tr data-page-node-id="ytWL5CpigjUPMEeHBjyQ1X">
+      <td data-page-node-id="yac4hWVJyLKFoRdZaxVB6L"><!--pnid:Q4Hz8PvTLde8xGhu5VHwh0-->000071.SZ</td>
+      <td data-page-node-id="LivrE0VlzPMryr1LQAvskJ"><!--pnid:qHcoqNkkWhqKvueNQSjP8r-->97.3400</td>
+      <td data-page-node-id="52DcPIgFKzujQiIsGaepFi"><!--pnid:7TSRiqj3wYJUMGAiGduLVk-->0.5338</td>
+      <td data-page-node-id="EfGksZtjjcfdhAwLsIZJ9p"><!--pnid:3HGfDqogSvQ0BJjSwS21Me-->0.0036</td>
+      <td data-page-node-id="x0smjMEjj4ifoctwu1nlRW"><!--pnid:QT3kEkkGY1p016OowxjcVK-->31.0349</td>
+      <td data-page-node-id="xH2nIHMBrI7kjszz9fTS2l"><!--pnid:kCx2sN8rEfI1YRxYphuzPu-->0.1987</td>
+      <td data-page-node-id="4KommTTb2ii9ccUbsWIV9s"><!--pnid:t5jM6ZdU1YjUEJbrm21CdP-->-0.0241</td>
+      <td data-page-node-id="9W2frdB0hxO09ZKUdrxqx2"><!--pnid:enkLJ0GXvdUZ3sJnXSnQRx-->1.3073</td>
+      <td data-page-node-id="o0zJUK16riKrGfxYKWF9dM"><!--pnid:GABJawm4GjwHq4OPbhybqk-->0.4669</td>
+      <td data-page-node-id="VnXFKlwAeM2CbpF5RFRSTP"><!--pnid:ZBOsVTC2MW6p0IpH41TXzr-->22.3227</td>
+      <td data-page-node-id="n1w2G6bzOAwxD1anMSUpbW"><!--pnid:N5kOckGpSO5Gj2cCUBBQkQ-->SW15</td>
+      <td data-page-node-id="1AdNIKxDjeSsUzvn22SkGk"><!--pnid:u6HTefpAQAho2FAD95yulX-->4950462116.9132</td>
+    </tr>
+    <tr data-page-node-id="951FRCBb6XwZibs84ST5T3">
+      <td data-page-node-id="Zs1jvxOb3VObQJHAX5mMnW"><!--pnid:5xB5oNYZLdsLK2Xctb2XLA-->600308.SH</td>
+      <td data-page-node-id="BxSuaprKJ6OeekchMHYiIn"><!--pnid:kHIq6vtvcpSjRSSc6CF2zT-->97.1500</td>
+      <td data-page-node-id="zmKpFhofHV0T5tsZFNyQbL"><!--pnid:3SQgVFPDDGRcWsK0hRjC7X-->0.4397</td>
+      <td data-page-node-id="dlqCqpG3q9xpNCnKgXwCmj"><!--pnid:m0cZMgWnDKbOqt0Qgur89L-->0.0162</td>
+      <td data-page-node-id="JffvmSPw3nzVVx63YotHwY"><!--pnid:zwcJNaPdwYw24h4ZxD3zrM-->21.5899</td>
+      <td data-page-node-id="uVttF5whCK7IORhjSO4vwV"><!--pnid:CkT7y7Yx0zFWLQG00VlUiU-->0.1924</td>
+      <td data-page-node-id="azmsf9qAlzgv8IwQ9OVI9Q"><!--pnid:LXxwWpgk2PeTFaLkcggcmk-->-0.0591</td>
+      <td data-page-node-id="JoohVF46wgG6TLLzVjiCBR"><!--pnid:fEDqzfWehNRhLuj85VzbzP-->2.7681</td>
+      <td data-page-node-id="xre4vtGolqo6Bl5qK3cbmS"><!--pnid:4nWU7rtP2Tqkn6Sr7kucng-->0.8922</td>
+      <td data-page-node-id="KjEVqzb0xt6Z6nDtoybaKr"><!--pnid:fw8wIo09vYkLq5mzkTMXT7-->22.8976</td>
+      <td data-page-node-id="AU0x5PTUX2snGw4GFhrVKt"><!--pnid:qFt0tGkCtwiGf2Q9mDKLAn-->SW00</td>
+      <td data-page-node-id="ijU6r7ysepxAhPhBqn8DIX"><!--pnid:ypXqMVHsL2IbKvPoGskIzb-->8795944649.3237</td>
+    </tr>
+    <tr data-page-node-id="LatZJc8UKrCMbUJdmM97bV">
+      <td data-page-node-id="Zwd2r3s4OEYyPiDh1h2lqX"><!--pnid:NJyGpEAhPVCccTUPDVPPij-->600170.SH</td>
+      <td data-page-node-id="gA1UFg3QgfxCr7vJLTjZ08"><!--pnid:d8iQd2H8iP9e0p8xaF212H-->96.9600</td>
+      <td data-page-node-id="LFlsOVdyoudh5ec3PEM23X"><!--pnid:UN6O4BIj13rguN48FkqR7L-->0.5734</td>
+      <td data-page-node-id="Q2eBYQ8cHLxwPN0sFY86cG"><!--pnid:EmDyT6MTbE7f83PqoUxCdB-->0.0004</td>
+      <td data-page-node-id="MUzZs4RYxLYssPySReUEp9"><!--pnid:hwRUtmEv4uZUUa1o4jVmcl-->19.9165</td>
+      <td data-page-node-id="eZXA9Wj4ZUnIQdq5b2KCTq"><!--pnid:W0WyhuyBOhZoE4zyGXZBNt-->0.0931</td>
+      <td data-page-node-id="s86JeCU4LhTJwoWOfCICgK"><!--pnid:7Z1129msesCHKrUXzKj6PZ-->-0.1701</td>
+      <td data-page-node-id="GXeEyYTeKl8YB1lcT3mMSP"><!--pnid:yEvbTrR2xIDEUgiY8s9YNh-->0.8933</td>
+      <td data-page-node-id="VUKPgiP1Dhp4n4fvUkV8PH"><!--pnid:0fjonsbkbRwl1SCemYzTuC-->0.3316</td>
+      <td data-page-node-id="xoVcD2cGcgs4yKaZUZ6MWi"><!--pnid:HI4IfchWunqVMd7shpnXTb-->22.5711</td>
+      <td data-page-node-id="XjrTjRXrRRZL52IfzJ9meJ"><!--pnid:z5AkwbbOhJpdb8p9b6HAgG-->SW02</td>
+      <td data-page-node-id="pwvMG14Mzj1Nm2fAvwqRjv"><!--pnid:ZWkVr6ziX5G7kPsdyf84C2-->6346305951.3950</td>
+    </tr>
+    <tr data-page-node-id="IodHPIDBmrafpYNBh4v2G6">
+      <td data-page-node-id="KcQiJjqTfJivDS5GFSnnIN"><!--pnid:vWw8yw9XfX2eFH0hPCvqnF-->600088.SH</td>
+      <td data-page-node-id="ktXO7csdu3qv6BPEwl6AtF"><!--pnid:JAgNFTTDtzabPWs98mXgxU-->96.7700</td>
+      <td data-page-node-id="ynCVkV9Vlnu4D9PegubiGw"><!--pnid:aXn5CDNXxXC8rgC2sJTIQv-->0.4554</td>
+      <td data-page-node-id="FiET5bubu8Fwcp32JprIS4"><!--pnid:loSrx4ca6gyMIMh9TPzWQp-->0.0100</td>
+      <td data-page-node-id="TKCICLVSv6GvA90XGErC9X"><!--pnid:shL0mmpKVh7dvFzY0p4C3d-->25.7288</td>
+      <td data-page-node-id="dXCukvm4PwgtrGgH3T0D0t"><!--pnid:GDuUSiYEATgUQrydk2w8ZA-->0.3122</td>
+      <td data-page-node-id="GPUAAxJyuS2nOQ5eHMc1fY"><!--pnid:T2PseDxqywClhvoaLGGl9v-->-0.0065</td>
+      <td data-page-node-id="qpoyytITtRBhyygAFEC39B"><!--pnid:6PO4ps7mt8O9gv8w1ZZE1x-->1.8729</td>
+      <td data-page-node-id="o6vkSKfMVLLWFOzR1B64Ov"><!--pnid:4eoFD16H7VyD33yvkkGqHT-->0.6951</td>
+      <td data-page-node-id="LJIUhVQpuIqSKAPrcdcpDz"><!--pnid:goxEs4KUQemNn5HALw4SDW-->20.9282</td>
+      <td data-page-node-id="Dbs5GonpO4xcVnFWMkpV2F"><!--pnid:v3SoliMxfm8d6WQfJaiRia-->SW04</td>
+      <td data-page-node-id="9fPePioTzQ3KXEAzdBRf0A"><!--pnid:5VkH8GJH4UQQy52reRqad4-->1227459047.7390</td>
+    </tr>
+    <tr data-page-node-id="HKEpiHiFYuRPgSOwLOXB8P">
+      <td data-page-node-id="2J936jRVJqH6tkEhiC4XwZ"><!--pnid:D13QPLZYddoXrxzADuwk8o-->000405.SZ</td>
+      <td data-page-node-id="zhYdDfS1qtYZE5IJETBU05"><!--pnid:O1zL393gsU1Ojph5UEsrMU-->96.5800</td>
+      <td data-page-node-id="UUPuxq1HSmK4wlmnKQyYAv"><!--pnid:cNQdhh8nQxsskjfKGRi01e-->0.5311</td>
+      <td data-page-node-id="f18cZJoOSemcTHI4aMzD1i"><!--pnid:wRRRLGF58spjWdKGdMJKRa-->0.0252</td>
+      <td data-page-node-id="LNmlI3CwagWCnlrQ1UkoHn"><!--pnid:m7A92eotbuwVfDaNXFi1of-->19.9375</td>
+      <td data-page-node-id="ilMIScDK8sHljG1mJ50GqU"><!--pnid:8It7q8FsKBVq10hB3h2Jgl-->0.2741</td>
+      <td data-page-node-id="csTfJoFxWcXi9l0rMppN5W"><!--pnid:sVrbLlyTb3IMBxb6lLJikD-->-0.0418</td>
+      <td data-page-node-id="j0qPOyrGcLUNDrSz7d4Oxs"><!--pnid:gnoOAmcoKyQuJncb75bu0e-->3.8890</td>
+      <td data-page-node-id="ne6D6ayXnYHuaMuQbX2FZX"><!--pnid:4oVra77BOHRRXaycPB6FBP-->1.3935</td>
+      <td data-page-node-id="TtBVXwbHsDKcRR5iJkMpGX"><!--pnid:OPl4Zu1ZetBxhSjhfzG8YF-->20.5862</td>
+      <td data-page-node-id="WFQ2lsasGl6F6ptbwOkoRb"><!--pnid:pceT7bcbX68CEZoJ38cs8u-->SW13</td>
+      <td data-page-node-id="XqqZjbp6SPg6jO8qEwmNyo"><!--pnid:mmFVZpWAZaowesbO7ObENA-->871916341.5658</td>
+    </tr>
+    <tr data-page-node-id="JG79HLoVEu4ZdB23ls0Ulx">
+      <td data-page-node-id="TNPNVFS7g2rEL1yxLCrBAT"><!--pnid:xosgYW5mwxON0WmEPHyM6h-->600532.SH</td>
+      <td data-page-node-id="YoMg7PiSM0cRqFFQocRhtB"><!--pnid:DPPxQPajdJfGtVTo78oQ6A-->96.3900</td>
+      <td data-page-node-id="ieoLsKxZA4eP1XGcNJO7bV"><!--pnid:UoYzwUPTnEL8Ve6cNn6T2u-->0.5020</td>
+      <td data-page-node-id="SH4XTYHw4rWIxSE1quoUxl"><!--pnid:La3bxWM4mY6aaEt089fxzp-->0.0194</td>
+      <td data-page-node-id="XF2n3QQQxtRqe61bHxaiQf"><!--pnid:ndqTOteM7SbuOupgVfifu5-->22.5048</td>
+      <td data-page-node-id="ZgOQB0PsUYIhaxjq7twlGt"><!--pnid:EajCFcx4fXnP858aq46AoG-->0.2037</td>
+      <td data-page-node-id="yLonR4foAcuvTni1IQb62S"><!--pnid:g3vsymi43lsHLkknktEvU9-->-0.0595</td>
+      <td data-page-node-id="EgYZ0CTn75K8UGvjWREuN1"><!--pnid:wZXhnTIAQOkp1NVzDaLsh5-->0.4871</td>
+      <td data-page-node-id="QTy4qEzWQginIhqhuJaMg3"><!--pnid:PHqTVeRiS6ISTjqMfv1eQH-->0.1974</td>
+      <td data-page-node-id="r0equxaFDNildTceTitP8F"><!--pnid:JLEIN0g43T2yek7jiptsxH-->20.9218</td>
+      <td data-page-node-id="uPI0zPA2M7syux9GQCDkE8"><!--pnid:lxBQ8HJqrSSZ3RBnTPokv7-->SW00</td>
+      <td data-page-node-id="ejjvwcW2yWXPLjzXFWSmcy"><!--pnid:u8OanY6s3QzsBFl06bUL5q-->1219595231.3110</td>
+    </tr>
+    <tr data-page-node-id="lMJ5a8UaGWSuCl7HmLCALb">
+      <td data-page-node-id="c8NqgZuDWm3tF6bM1mRogl"><!--pnid:3yyHEVtOh8WRpZnkKYsKxH-->600394.SH</td>
+      <td data-page-node-id="XYy9Nzi3N55VNNsZIxDk1S"><!--pnid:NRLPJRR9teJmQElilSHih9-->96.2000</td>
+      <td data-page-node-id="PbtNZ63L7uL3coEJkx9wR5"><!--pnid:oZtFtaCheg4HdaOHo13aUK-->0.5182</td>
+      <td data-page-node-id="uWldZVt4QkFd4L9XsQ3soq"><!--pnid:oXd0AsF80gARLKiQvb5oI7-->-0.0012</td>
+      <td data-page-node-id="ppGAe6M3Mjjc4vwfdAm44E"><!--pnid:ITKNOA7J29YPOllON7h1c9-->31.8175</td>
+      <td data-page-node-id="PwEEKzYIpdlieXMMGsHqkN"><!--pnid:X8mCrM94mFaSo4JVM5rlns-->0.3103</td>
+      <td data-page-node-id="y3dkszAS3toWRnnsnDcKZK"><!--pnid:hB6sDjN0g35IF4UZLBPtyk-->-0.0665</td>
+      <td data-page-node-id="JdT0Dl6TuqB5k0kz0OoAXr"><!--pnid:4Jvc7bCusHf4Rc178QMQRD-->3.5926</td>
+      <td data-page-node-id="icfGAvqEA9nbSxxsQ4XSMz"><!--pnid:t64sK7FCAffLEz54vbNiUr-->1.5038</td>
+      <td data-page-node-id="ZDv3UsS7TQ2qJkMkG7K6Ws"><!--pnid:QOKiNJ3k9IZBBALDCs8ORA-->22.9691</td>
+      <td data-page-node-id="exZUOszPO2s4UBC0AHi9zx"><!--pnid:ixYj7hR0MPeo4SRUzrWIT9-->SW02</td>
+      <td data-page-node-id="xozHMDBFzAl57jKP7KnyPO"><!--pnid:bjt2YqPHqK2evsviTLhnh9-->9447849753.2230</td>
+    </tr>
+    <tr data-page-node-id="RvIxK1g7oi0GyHFnL8Eivv">
+      <td data-page-node-id="DhdwlqE7t6LpltX61MP5uk"><!--pnid:Il0HlXWIZ8qbDSsMUa4EO8-->000505.SZ</td>
+      <td data-page-node-id="DBZAnOBtGCOz3IyhtnkaO6"><!--pnid:P8dY20CwCAZlSVEvLAFQqs-->96.0200</td>
+      <td data-page-node-id="RHE0QjJ60VK7J4OOWMTp8D"><!--pnid:Ry6GFg1sFvbxvNQ2i4wXZF-->0.5863</td>
+      <td data-page-node-id="N0XgMZPEieN90hsVRoIyXz"><!--pnid:QDE49PeWtHgfhqYP5wRpuz-->0.0148</td>
+      <td data-page-node-id="KcJHfBTf3YH7lcOCAYQNnc"><!--pnid:u30RsqOyu5XJaz8YGM9BMR-->26.0995</td>
+      <td data-page-node-id="yDk2Yxm4Yak4JjZMUQv3Zw"><!--pnid:YpmKAGVSm5WGpANF1U78NG-->0.3228</td>
+      <td data-page-node-id="PjU1pZmyqyM1E77XdCRri8"><!--pnid:jgKvPqJ7SKvdY34TXWKGRC-->-0.0171</td>
+      <td data-page-node-id="Npx0vbOH1BoUx1J3oTCPk2"><!--pnid:TEziBPmVLqtMh2nPvhu7mL-->0.4028</td>
+      <td data-page-node-id="6XF9iB7YPCXF5htzam6ihG"><!--pnid:AEmDIaZ3Kmm13PRkndXPsi-->0.1818</td>
+      <td data-page-node-id="LHLpOrPNm71TU1f6ko9gqi"><!--pnid:R3uQ8TjG3Ei9XQ9fAmZD1X-->23.0066</td>
+      <td data-page-node-id="rQ9ZLxwBCTB5tfygM2TWlo"><!--pnid:AteUqGa4VhUJpfdoPI5XZh-->SW01</td>
+      <td data-page-node-id="nHkvINJDLvspPP4EIyBfti"><!--pnid:GtMaZh5i5lvq3JNfHRD8rd-->9809756342.5824</td>
+    </tr>
+    <tr data-page-node-id="5BAbo8HsrSgiXGvgK4bol6">
+      <td data-page-node-id="C02yFkWQxRTexjPiBOiCvx"><!--pnid:jdau1Cpb0lZGnD3EPnOxKn-->600106.SH</td>
+      <td data-page-node-id="XFbaxMzoJ943iqUxqSGqlt"><!--pnid:sE0ck3TO1YhP93hnT9I6su-->95.8300</td>
+      <td data-page-node-id="y4cDl94uTTGXWNbW2Kj73g"><!--pnid:tfIQzc2BM6vf7JEUAvSSh8-->0.5878</td>
+      <td data-page-node-id="KKc1xMY32qIxP62dbT0VTu"><!--pnid:JDXxOOGu7duAOhxFk99a6z-->0.0150</td>
+      <td data-page-node-id="5OB7UWCOmJwGuUClxeLyky"><!--pnid:FrsEMGo8CLzZJp7h5NUpzj-->24.4385</td>
+      <td data-page-node-id="l4LyYu4P9Y7z2Y5KsOF7eI"><!--pnid:zGxuaA7153ooZ0UesBcGrt-->0.3565</td>
+      <td data-page-node-id="IvFRiGWT9uIgi1k18ij2FC"><!--pnid:slDL5HRArlxxvPm7G5WrdZ-->-0.0106</td>
+      <td data-page-node-id="Eev0gcYwQeQ8yTvWpMSGux"><!--pnid:sxQYytZiUckxoFOPOInQXA-->0.9948</td>
+      <td data-page-node-id="FhziJbO3C6M3obVtX6DBIG"><!--pnid:wgpoc7ZF7tVk8QMQvWgZaO-->0.4919</td>
+      <td data-page-node-id="pOmLvpjqjxEVap3pMQefnl"><!--pnid:mX65R3omdVvM8f15yVsKIO-->23.4857</td>
+      <td data-page-node-id="3vnE6xiPAlr9wpaAimaNi7"><!--pnid:CtsDm7Pz4QaQPGhXqSXzFW-->SW22</td>
+      <td data-page-node-id="It7eVWNs5wLoRdAFUtPFOD"><!--pnid:wdOLnEIKbiHEXf68azFNH3-->15838397064.6595</td>
+    </tr>
+    <tr data-page-node-id="bcHH2NDSqEqgCLKPYjnDSQ">
+      <td data-page-node-id="Bk9RCUM3fTmQFa28lgszcD"><!--pnid:MX0zl5xh9l9j342uzEhRQw-->000091.SZ</td>
+      <td data-page-node-id="dglvjb71KZoCbLijtwB9Zx"><!--pnid:vZSPiysDxGqKF8Bn1L4wWO-->95.6400</td>
+      <td data-page-node-id="GfizhLs4fTsAYwunBz6Yba"><!--pnid:PGKf9w0OMe1425b1FXnap4-->0.3454</td>
+      <td data-page-node-id="Z8qhgb6CaNkWnjMR6U6ekt"><!--pnid:JBaxvJf7ks6UXFQe6LbZmw-->0.0121</td>
+      <td data-page-node-id="EJaocXBj9g2y1syhLGPKOV"><!--pnid:GgViej5Uq59CPNLhheezkK-->21.8210</td>
+      <td data-page-node-id="Tq3s9MbUdqUZknIthVeFLX"><!--pnid:ZclyLwk0bOonkG2ksM73xR-->0.2769</td>
+      <td data-page-node-id="o0GECyavMe0yO1xzr8wP3Y"><!--pnid:xCPb5Z0RKVg2cEwmShfPMK-->-0.0413</td>
+      <td data-page-node-id="w67eqskujsdViODvcN0SQl"><!--pnid:Qdzx14IDwXYRfMYJml56lm-->7.4730</td>
+      <td data-page-node-id="5qzxdEvvjl1EcGhm5JMKKZ"><!--pnid:l4s0s5Jywci7nlE3PUg4Zh-->2.0081</td>
+      <td data-page-node-id="KCKIMlNETNi4lnAtBXikuM"><!--pnid:O1JySCvbDIOmCWHohgg2RK-->21.6495</td>
+      <td data-page-node-id="oJ58FtpypJMX9WiNYUv3Ry"><!--pnid:EDyXH7S1drcDQgyVMNwVEv-->SW07</td>
+      <td data-page-node-id="bBlWMKFVDFMovR2p94DerN"><!--pnid:gEbqO5ALo4pfXAwjgQbrHv-->2525088773.5334</td>
+    </tr>
+    <tr data-page-node-id="Gr7SFkH9A36lcdnDrWeJA8">
+      <td data-page-node-id="veK7VSGCDq8MRVwqjQLlhu"><!--pnid:luhC5uCznXE4ldUCPmTOFZ-->000523.SZ</td>
+      <td data-page-node-id="h9ueqCRBMysGGRFSZqMdrw"><!--pnid:ZYiHwiojy0zgVxeUsoadnV-->95.4500</td>
+      <td data-page-node-id="7WRTFWEKKNvO6CYqXJ1unY"><!--pnid:ykKFhKBswKK1cMxPqDCPOT-->0.3595</td>
+      <td data-page-node-id="RhhhNyAavG5T1PEidvUKRJ"><!--pnid:2GjCMvRRr303RBnLRDpBnA-->0.0035</td>
+      <td data-page-node-id="0GBwqthwEStD1UlqBqHW8v"><!--pnid:p4U8Ot6lZ1ZNQnuIPaDXG2-->37.2739</td>
+      <td data-page-node-id="V5qHEM7Bkuwiuvbu6xTse9"><!--pnid:Ze6AYltnHWgCs6cjfEKNAP-->0.0653</td>
+      <td data-page-node-id="VudPCiYdipQAEPHLGjDDls"><!--pnid:dWg63Ewmqw9dLYZEHdr8z0-->-0.1088</td>
+      <td data-page-node-id="K2kMM6Pn0fJi7mksd9CeNY"><!--pnid:2051zbkB3bIbqsDPLY5jrv-->2.3326</td>
+      <td data-page-node-id="dPsTu148QZ3hbFb2e6HLFc"><!--pnid:JyvczmCF6GBiD8uXYm73JC-->0.6073</td>
+      <td data-page-node-id="idA3rzJ67VJ8KG10SXsN4z"><!--pnid:T06cZQlmbc3lgHm0al7524-->22.3881</td>
+      <td data-page-node-id="XuMyeMC17lsPc5QXP5HLlm"><!--pnid:Tgo2XtGrJNx0eo0aOIJXLX-->SW19</td>
+      <td data-page-node-id="GIKUBZqNwmbHzbfl3knQPd"><!--pnid:uFrs3QmNBBZh9J5fpyyKIM-->5284728338.5225</td>
+    </tr>
+  </tbody>
+</table>
+<div data-page-node-id="NXGJQGHWfViFYmLyLPDXyN" class="note" style="margin-top:30px"><!--pnid:AbxjN24eFpUX6O6SeUL3Jo-->本报告由 <code data-page-node-id="uirkVFfwbSDoBhNZinZb80" data-pnid-children="cPb2eOxUXtuuDRX50FtsEp">pscore</code><!--pnid:00eLI6hSAqEEIjHNXIBiJC--> 自动生成。回测使用公告日可得的财报，已规避前视偏差；结果受样本区间、交易成本与流动性假设影响，不构成投资建议。</div>
+</body></html>
